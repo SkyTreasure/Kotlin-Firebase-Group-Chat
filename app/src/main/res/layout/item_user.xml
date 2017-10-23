@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/rl_parent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:orientation="vertical">
+
+        <android.support.v7.widget.AppCompatImageView
+            android:id="@+id/iv_profile"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            app:srcCompat="@drawable/default_user" />
+
+        <android.support.v7.widget.AppCompatImageView
+            android:id="@+id/iv_selected"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginLeft="-16dp"
+            android:layout_toRightOf="@+id/iv_profile"
+            android:visibility="gone"
+            app:srcCompat="@drawable/item_white_check" />
+
+        <TextView
+            android:id="@+id/tv_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="4dp"
+            android:layout_toEndOf="@+id/iv_profile"
+            android:text="User Name"
+            android:textColor="@color/black" />
+
+        <TextView
+            android:id="@+id/tv_email"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tv_name"
+            android:layout_centerInParent="true"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="8dp"
+            android:layout_toEndOf="@+id/iv_profile"
+            android:text="Email ID"
+            android:textColor="@color/home_page_textcolor" />
+
+    </RelativeLayout>
+</layout>

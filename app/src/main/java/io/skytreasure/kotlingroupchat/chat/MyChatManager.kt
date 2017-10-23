@@ -12,7 +12,9 @@ import com.google.firebase.database.*
 import com.google.gson.Gson
 import io.skytreasure.kotlingroupchat.chat.model.UserModel
 import io.skytreasure.kotlingroupchat.common.constants.FirebaseConstants
+import io.skytreasure.kotlingroupchat.common.constants.PrefConstants
 import io.skytreasure.kotlingroupchat.common.controller.NotifyMeInterface
+import io.skytreasure.kotlingroupchat.common.util.SecurePrefs
 
 /**
  * Created by akash on 23/10/17.
@@ -38,7 +40,8 @@ object MyChatManager {
 
     }
 
-    fun init() {
+    fun init(mContext: Context) {
+        this.mContext = mContext
         setupFirebaseAuth()
         signInToFirebaseAnonymously()
     }
@@ -80,6 +83,9 @@ object MyChatManager {
 
     }
 
+    /**
+     * Login
+     */
     fun loginCreateAndUpdate(callback: NotifyMeInterface?, userModel: UserModel?, requestType: Int?) {
         try {
             mUserRef?.child(userModel?.uid)?.runTransaction(object : Transaction.Handler {
@@ -110,5 +116,36 @@ object MyChatManager {
         }
 
     }
+
+    /**
+     * Get user list from firebase
+     */
+    fun getAllUsersFromFirebase(callback: NotifyMeInterface?, requestType: Int?) {
+
+        // Making a copy of listener
+        val listener = object : ValueEventListener {
+            override fun onCancelled(databaseError: DatabaseError) {}
+            override fun onDataChange(dataSnaphot: DataSnapshot) {
+                if (dataSnaphot.exists()) {
+                    var userList: ArrayList<UserModel> = ArrayList()
+                    /*dataSnaphot.getValue<UserModel>(UserModel::class.java)?.let {
+                        userList.add(it)
+                    }*/
+                    dataSnaphot.children.forEach { it ->
+                        it.getValue<UserModel>(UserModel::class.java)?.let {
+                            if (!SecurePrefs(mContext!!).get(PrefConstants.USER_ID).equals(it.uid)) {
+                                userList.add(it)
+                            }
+                        }
+                    }
+                    callback?.handleData(userList, requestType)
+                }
+            }
+        }
+
+        mUserRef?.addListenerForSingleValueEvent(listener)
+
+    }
+
 
 }

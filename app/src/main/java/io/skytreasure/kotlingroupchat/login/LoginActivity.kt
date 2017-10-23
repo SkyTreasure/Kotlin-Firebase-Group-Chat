@@ -50,7 +50,7 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener, GoogleApiClient
         setContentView(R.layout.activity_login)
 
         mAuth = FirebaseAuth.getInstance()
-        MyChatManager.init()
+        MyChatManager.init(this@LoginActivity)
         btn_google.setOnClickListener(this)
         setupGoogleSignIn()
     }
