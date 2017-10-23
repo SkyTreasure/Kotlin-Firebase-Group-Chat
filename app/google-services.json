@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "977404602047",
+    "firebase_url": "https://kotlin-group-chat.firebaseio.com",
+    "project_id": "kotlin-group-chat",
+    "storage_bucket": "kotlin-group-chat.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:977404602047:android:d17b8fea7f32cd27",
+        "android_client_info": {
+          "package_name": "io.skytreasure.kotlingroupchat"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "977404602047-ef7dioos8m840hgb6hhf7s4e9jcfkfgq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC_qvngj5aVLchxX8Lk5qapCED5__vdE7c"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

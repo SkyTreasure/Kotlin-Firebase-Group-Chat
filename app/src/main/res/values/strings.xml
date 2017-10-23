@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">KotlinGroupChat</string>
+    <string name="user_exists">An account already exists with the same email address but different sign-in credentials. Sign in using a provider associated with this email address.</string>
+</resources>
