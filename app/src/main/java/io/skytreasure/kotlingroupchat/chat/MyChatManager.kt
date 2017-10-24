@@ -10,7 +10,9 @@ import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.google.gson.Gson
+import io.skytreasure.kotlingroupchat.chat.model.GroupModel
 import io.skytreasure.kotlingroupchat.chat.model.UserModel
+import io.skytreasure.kotlingroupchat.common.constants.DataConstants
 import io.skytreasure.kotlingroupchat.common.constants.FirebaseConstants
 import io.skytreasure.kotlingroupchat.common.constants.PrefConstants
 import io.skytreasure.kotlingroupchat.common.controller.NotifyMeInterface
@@ -32,7 +34,7 @@ object MyChatManager {
     val gson = Gson()
     var mContext: Context? = null
     var mUserRef: DatabaseReference? = mFirebaseDatabaseReference?.child(FirebaseConstants.USERS)
-    var mUserVVEL: ValueEventListener? = null
+    var mGroupRef: DatabaseReference? = mFirebaseDatabaseReference?.child(FirebaseConstants.GROUP)
 
 
     fun setmContext(mContext: Context) {
@@ -145,6 +147,34 @@ object MyChatManager {
 
         mUserRef?.addListenerForSingleValueEvent(listener)
 
+    }
+
+    /**
+     * This function creates a group in the firebase and adds an entry of group id under users and set it to
+     * true.
+     */
+    fun createGroup(callback: NotifyMeInterface?, group: GroupModel, requestType: Int?) {
+
+        val groupId = mGroupRef?.push()?.key
+        group.groupId = groupId
+
+        for (user in group.members) {
+            user.value.groups = hashMapOf()
+            user.value.email = null
+            user.value.image_url = null
+            user.value.name = null
+        }
+
+        mGroupRef?.child(groupId)?.setValue(group)
+
+        for (user in group.members) {
+            mUserRef?.child(user.value.uid)?.child(FirebaseConstants.GROUP)?.child(groupId)?.setValue(true)
+        }
+
+
+
+
+        callback?.handleData(true, requestType)
     }
 
 

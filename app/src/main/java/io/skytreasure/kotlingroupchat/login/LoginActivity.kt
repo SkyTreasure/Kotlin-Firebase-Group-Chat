@@ -25,13 +25,16 @@ import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.AuthCredential
+import com.google.gson.Gson
 import io.skytreasure.kotlingroupchat.MainActivity
 import io.skytreasure.kotlingroupchat.chat.MyChatManager
 import io.skytreasure.kotlingroupchat.chat.model.UserModel
+import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.AdminUser
 import io.skytreasure.kotlingroupchat.common.constants.NetworkConstants
 import io.skytreasure.kotlingroupchat.common.constants.PrefConstants
 import io.skytreasure.kotlingroupchat.common.controller.NotifyMeInterface
 import io.skytreasure.kotlingroupchat.common.util.SecurePrefs
+import io.skytreasure.kotlingroupchat.common.util.SharedPrefManager
 
 
 class LoginActivity : AppCompatActivity(), View.OnClickListener, GoogleApiClient.OnConnectionFailedListener {
@@ -49,10 +52,19 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener, GoogleApiClient
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
+
+
         mAuth = FirebaseAuth.getInstance()
         MyChatManager.init(this@LoginActivity)
         btn_google.setOnClickListener(this)
         setupGoogleSignIn()
+
+
+        if (SharedPrefManager.getInstance(this@LoginActivity).savedUserModel != null) {
+            val intent = Intent(this@LoginActivity, MainActivity::class.java)
+            startActivity(intent)
+            finish()
+        }
     }
 
     override fun onClick(v: View?) {
@@ -119,22 +131,25 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener, GoogleApiClient
                 mUserModel?.uid = user?.uid!!
                 mUserModel?.name = user?.displayName!!
                 mUserModel?.email = user?.email!!
-                mUserModel?.imageUrl = user?.photoUrl.toString()
+                mUserModel?.image_url = user?.photoUrl.toString()
 
+                SharedPrefManager.getInstance(this@LoginActivity).savePreferences(PrefConstants.USER_DATA, Gson().toJson(mUserModel))
                 SecurePrefs(this@LoginActivity).put(PrefConstants.USER_ID, user?.uid!!)
                 SecurePrefs(this@LoginActivity).put(PrefConstants.USER_EMAIL, user?.email!!)
                 firebaseLogin()
             } else {
-                // If sign in fails, display a message to the user.
+
                 Log.w(TAG, "signInWithCredential:failure", task.exception)
                 if (task.exception!!.message == getString(R.string.user_exists)) {
                     prevUser = currentUser
                     mUserModel?.uid = currentUser?.uid!!
                     mUserModel?.name = currentUser?.displayName!!
                     mUserModel?.email = currentUser?.email!!
-                    mUserModel?.imageUrl = currentUser?.photoUrl.toString()
+                    mUserModel?.image_url = currentUser?.photoUrl.toString()
+
                     SecurePrefs(this@LoginActivity).put(PrefConstants.USER_ID, currentUser?.uid!!)
                     SecurePrefs(this@LoginActivity).put(PrefConstants.USER_EMAIL, currentUser?.email!!)
+                    SharedPrefManager.getInstance(this@LoginActivity).savePreferences(PrefConstants.USER_DATA, Gson().toJson(mUserModel))
                     linkWithExistingUser(credential)
                 } else {
                     Toast.makeText(this@LoginActivity, "Authentication failed.",

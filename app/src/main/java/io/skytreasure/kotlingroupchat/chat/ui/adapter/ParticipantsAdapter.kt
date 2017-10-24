@@ -26,7 +26,7 @@ class ParticipantsAdapter : RecyclerView.Adapter<ParticipantsAdapter.ViewHolder>
         holder.tvName.text = user?.name
         holder.tvEmail.text = user?.email
 
-        loadRoundImage(holder.ivProfile, user?.imageUrl!!)
+        loadRoundImage(holder.ivProfile, user?.image_url!!)
 
     }
 

@@ -28,11 +28,11 @@ class UserSelectionAdapter(context: Context, var callback: NotifyMeInterface) : 
 
         holder.tvName.text = user?.name
 
-        loadRoundImage(holder.ivProfile, user?.imageUrl!!)
+        loadRoundImage(holder.ivProfile, user?.image_url!!)
         holder.ivSelected.visibility = View.VISIBLE
 
         holder.ivSelected.setOnClickListener {
-            callback.handleData(user.uid, NetworkConstants.USER_REMOVED)
+            callback.handleData(user.uid!!, NetworkConstants.USER_REMOVED)
             selectedUserList?.remove(user)
             notifyDataSetChanged()
         }

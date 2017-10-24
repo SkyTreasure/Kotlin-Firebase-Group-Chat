@@ -52,6 +52,7 @@ class CreateGroupActivity : AppCompatActivity(), View.OnClickListener {
         MyChatManager.getAllUsersFromFirebase(object : NotifyMeInterface {
             override fun handleData(`asv`: Any, requestCode: Int?) {
                 userList = `asv` as ArrayList<UserModel>
+                selectedUserList?.clear();
                 rv_user_list.layoutManager = LinearLayoutManager(this@CreateGroupActivity) as RecyclerView.LayoutManager?
                 adapter = UserListAdapter(this@CreateGroupActivity, userSelectionInterface)
                 rv_user_list.adapter = adapter

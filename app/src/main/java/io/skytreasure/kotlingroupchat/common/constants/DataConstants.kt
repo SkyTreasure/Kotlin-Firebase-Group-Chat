@@ -11,5 +11,6 @@ class DataConstants {
         var userList: ArrayList<UserModel>? = ArrayList()
         var selectedUserList: ArrayList<UserModel>? = ArrayList()
         var mapList: MutableMap<String, UserModel> = mutableMapOf()
+        var AdminUser: UserModel = UserModel()
     }
 }

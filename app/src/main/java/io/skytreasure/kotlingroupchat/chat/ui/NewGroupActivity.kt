@@ -19,10 +19,18 @@ import android.webkit.MimeTypeMap
 import android.widget.Toast
 import com.theartofdev.edmodo.cropper.CropImage
 import com.theartofdev.edmodo.cropper.CropImageView
+import io.skytreasure.kotlingroupchat.MainActivity
 import kotlinx.android.synthetic.main.activity_new_group.*
 
 import io.skytreasure.kotlingroupchat.R
+import io.skytreasure.kotlingroupchat.chat.MyChatManager
+import io.skytreasure.kotlingroupchat.chat.model.GroupModel
+import io.skytreasure.kotlingroupchat.chat.model.UserModel
 import io.skytreasure.kotlingroupchat.chat.ui.adapter.ParticipantsAdapter
+import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.selectedUserList
+import io.skytreasure.kotlingroupchat.common.constants.NetworkConstants
+import io.skytreasure.kotlingroupchat.common.controller.NotifyMeInterface
+import io.skytreasure.kotlingroupchat.common.util.SharedPrefManager
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 
@@ -172,8 +180,66 @@ class NewGroupActivity : AppCompatActivity(), View.OnClickListener {
             }
 
             R.id.btn_creategroup -> {
-                Toast.makeText(this@NewGroupActivity, et_groupname.text, Toast.LENGTH_SHORT).show()
+                createGroup()
             }
         }
+    }
+
+    private fun createGroup() {
+        var isValid: Boolean = true
+        var errorMessage: String = "No Error"
+
+        var groupName: String = et_groupname.text.toString()
+
+        if (groupName.isBlank()) {
+            isValid = false
+            errorMessage = "Group name is blank"
+        }
+        if (groupName.length!! < 3) {
+            isValid = false
+            errorMessage = "Group name should be more than 2 characters"
+        }
+
+        var groupImage: String = "https://cdn1.iconfinder.com/data/icons/google_jfk_icons_by_carlosjj/128/groups.png"
+        var newGroup: GroupModel = GroupModel(groupName, groupImage, group_deleted = false, group = true)
+        var adminUserModel: UserModel? = SharedPrefManager.getInstance(this@NewGroupActivity).savedUserModel
+        adminUserModel?.admin = true
+
+        var groupMembers: HashMap<String, UserModel> = hashMapOf()
+/*
+
+        var tempList :MutableList<UserModel> = selectedUserList?.toMutableList()!!
+
+*/
+
+
+        for (user in selectedUserList!!) {
+
+            groupMembers.put(user.uid!!, user)
+        }
+
+
+        groupMembers.put(adminUserModel?.uid!!, adminUserModel)
+
+        newGroup.members = groupMembers
+
+        MyChatManager.setmContext(this@NewGroupActivity)
+
+        if (isValid) {
+
+            MyChatManager.createGroup(object : NotifyMeInterface {
+                override fun handleData(`object`: Any, requestCode: Int?) {
+                    Toast.makeText(this@NewGroupActivity, "Group has been created successful", Toast.LENGTH_SHORT).show()
+                    val intent = Intent(this@NewGroupActivity, MainActivity::class.java)
+                    startActivity(intent)
+                    finish()
+                }
+
+            }, newGroup, NetworkConstants.CREATE_GROUP)
+        } else {
+            Toast.makeText(this@NewGroupActivity, "Validation Error", Toast.LENGTH_SHORT).show()
+        }
+
+
     }
 }

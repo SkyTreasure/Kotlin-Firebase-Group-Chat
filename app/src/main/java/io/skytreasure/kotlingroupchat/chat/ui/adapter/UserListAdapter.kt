@@ -35,7 +35,7 @@ class UserListAdapter(context: Context,
         holder.tvName.text = user?.name
         holder.tvEmail.text = user?.email
 
-        loadRoundImage(holder.ivProfile, user?.imageUrl!!)
+        loadRoundImage(holder.ivProfile, user?.image_url!!)
 
         holder.layout.setOnClickListener {
 
