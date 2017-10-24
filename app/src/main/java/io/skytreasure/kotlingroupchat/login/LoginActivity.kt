@@ -191,7 +191,6 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener, GoogleApiClient
             }
         }, mUserModel!!, NetworkConstants.LOGIN_REQUEST)
 
-
     }
 
 

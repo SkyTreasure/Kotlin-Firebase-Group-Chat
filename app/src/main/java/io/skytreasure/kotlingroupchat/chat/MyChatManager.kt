@@ -11,9 +11,13 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.google.gson.Gson
 import io.skytreasure.kotlingroupchat.chat.model.GroupModel
+import io.skytreasure.kotlingroupchat.chat.model.MessageModel
 import io.skytreasure.kotlingroupchat.chat.model.UserModel
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants
+import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.groupMembersMap
+import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.groupMessageMap
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.myGroups
+import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.userMap
 import io.skytreasure.kotlingroupchat.common.constants.FirebaseConstants
 import io.skytreasure.kotlingroupchat.common.constants.PrefConstants
 import io.skytreasure.kotlingroupchat.common.controller.NotifyMeInterface
@@ -36,11 +40,10 @@ object MyChatManager {
     var mContext: Context? = null
     var mUserRef: DatabaseReference? = mFirebaseDatabaseReference?.child(FirebaseConstants.USERS)
     var mGroupRef: DatabaseReference? = mFirebaseDatabaseReference?.child(FirebaseConstants.GROUP)
-
+    var mMessageRef: DatabaseReference? = mFirebaseDatabaseReference?.child(FirebaseConstants.MESSAGES)
 
     fun setmContext(mContext: Context) {
         this.mContext = mContext
-
     }
 
     fun init(mContext: Context) {
@@ -184,12 +187,20 @@ object MyChatManager {
      */
     fun fetchMyGroups(callback: NotifyMeInterface?, requestType: Int?, userModel: UserModel?) {
         myGroups?.clear()
+
         var i: Int = userModel?.group?.size!!
         val groupListener = object : ValueEventListener {
             override fun onCancelled(databaseError: DatabaseError) {}
             override fun onDataChange(groupSnapshot: DataSnapshot) {
                 if (groupSnapshot.exists()) {
-                    myGroups?.add(groupSnapshot.getValue<GroupModel>(GroupModel::class.java)!!)
+                    var groupModel: GroupModel = groupSnapshot.getValue<GroupModel>(GroupModel::class.java)!!
+                    var memberList: ArrayList<UserModel> = arrayListOf()
+                    for (member in groupModel.members) {
+                        memberList.add(member.value)
+                    }
+                    groupMembersMap?.put(groupModel.groupId!!, memberList)
+                    groupMessageMap?.put(groupModel.groupId!!, arrayListOf())
+                    myGroups?.add(groupModel)
                 }
                 i--
                 if (i == 0) {
@@ -204,6 +215,72 @@ object MyChatManager {
             }
         }
 
+    }
+
+
+    /**
+     * This function sends messages to a group
+     */
+    fun sendMessageToAGroup(callback: NotifyMeInterface?, requestType: Int?, groupId: String?,
+                            messageModel: MessageModel?) {
+
+        val messageKey = mMessageRef?.child(groupId)?.push()?.key
+        messageModel?.message_id = messageKey
+
+        mMessageRef?.child(groupId)?.child(messageKey)?.setValue(messageModel)
+
+        callback?.handleData(true, requestType)
+        //TODO: Send Notification here.
+
+    }
+
+
+    fun fetchGroupMembersDetails(callback: NotifyMeInterface?, requestType: Int?, groupId: String?) {
+        var i: Int = groupMembersMap?.get(groupId)?.size!!
+        for (member in groupMembersMap?.get(groupId)!!) {
+            mUserRef?.child(member.uid)?.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onCancelled(p0: DatabaseError?) {
+                    i--
+                }
+
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    if (snapshot.exists()) {
+                        var userModel: UserModel = snapshot.getValue<UserModel>(UserModel::class.java)!!
+                        userMap?.put(userModel.uid!!, userModel)
+                        i--
+                        if (i == 0) {
+                            fetchMessagesFromGroup(callback, requestType, groupId)
+                        }
+                    }
+                }
+
+            })
+        }
+
+
+    }
+
+
+    fun fetchMessagesFromGroup(callback: NotifyMeInterface?, requestType: Int?, groupId: String?) {
+        val listener = object : ChildEventListener {
+            override fun onCancelled(databaseError: DatabaseError) {}
+            override fun onChildMoved(p0: DataSnapshot?, p1: String?) {}
+            override fun onChildChanged(p0: DataSnapshot?, p1: String?) {}
+            override fun onChildRemoved(p0: DataSnapshot?) {}
+            override fun onChildAdded(dataSnapshot: DataSnapshot, p1: String?) {
+                if (dataSnapshot.exists()) {
+                    dataSnapshot.getValue<MessageModel>(MessageModel::class.java)?.let {
+                        groupMessageMap?.get(groupId)?.add(it)
+                    }
+                    callback?.handleData(true, requestType)
+                } else {
+                    callback?.handleData(false, requestType)
+                }
+
+
+            }
+        }
+        mMessageRef?.child(groupId)?.addChildEventListener(listener)
     }
 
 

@@ -5,6 +5,7 @@ package io.skytreasure.kotlingroupchat.common.constants;
  */
 
 public class FirebaseConstants {
-    public static final String USERS="users";
-    public static final String GROUP="group";
+    public static final String USERS = "users";
+    public static final String GROUP = "group";
+    public static final String MESSAGES = "messages";
 }

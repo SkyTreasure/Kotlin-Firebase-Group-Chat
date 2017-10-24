@@ -18,7 +18,7 @@ class ViewGroupsActivity : AppCompatActivity() {
         setContentView(R.layout.activity_view_groups)
 
         rv_main.layoutManager = LinearLayoutManager(this@ViewGroupsActivity) as RecyclerView.LayoutManager?
-        adapter = ViewGroupsAdapter()
+        adapter = ViewGroupsAdapter(this@ViewGroupsActivity)
         rv_main.adapter = adapter
 
     }
