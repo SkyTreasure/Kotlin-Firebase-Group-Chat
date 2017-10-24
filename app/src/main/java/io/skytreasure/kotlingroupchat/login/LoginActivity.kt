@@ -29,7 +29,6 @@ import com.google.gson.Gson
 import io.skytreasure.kotlingroupchat.MainActivity
 import io.skytreasure.kotlingroupchat.chat.MyChatManager
 import io.skytreasure.kotlingroupchat.chat.model.UserModel
-import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.AdminUser
 import io.skytreasure.kotlingroupchat.common.constants.NetworkConstants
 import io.skytreasure.kotlingroupchat.common.constants.PrefConstants
 import io.skytreasure.kotlingroupchat.common.controller.NotifyMeInterface
@@ -61,9 +60,9 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener, GoogleApiClient
 
 
         if (SharedPrefManager.getInstance(this@LoginActivity).savedUserModel != null) {
-            val intent = Intent(this@LoginActivity, MainActivity::class.java)
+           /* val intent = Intent(this@LoginActivity, MainActivity::class.java)
             startActivity(intent)
-            finish()
+            finish()*/
         }
     }
 

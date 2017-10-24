@@ -13,6 +13,7 @@ import com.google.gson.Gson
 import io.skytreasure.kotlingroupchat.chat.model.GroupModel
 import io.skytreasure.kotlingroupchat.chat.model.UserModel
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants
+import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.myGroups
 import io.skytreasure.kotlingroupchat.common.constants.FirebaseConstants
 import io.skytreasure.kotlingroupchat.common.constants.PrefConstants
 import io.skytreasure.kotlingroupchat.common.controller.NotifyMeInterface
@@ -86,7 +87,8 @@ object MyChatManager {
     }
 
     /**
-     * Login
+     * Login if node is already present then just update the name and imageurl and don't alter any other field.
+     *
      */
     fun loginCreateAndUpdate(callback: NotifyMeInterface?, userModel: UserModel?, requestType: Int?) {
         try {
@@ -94,9 +96,10 @@ object MyChatManager {
                 override fun doTransaction(mutableData: MutableData): Transaction.Result {
                     val p = mutableData.getValue<UserModel>(UserModel::class.java)
                     if (p == null) {
-                        mUserRef?.child(userModel?.uid)?.setValue(userModel)
-                    } else {
                         mutableData.setValue(userModel)
+                    } else {
+                        mutableData.child("image_url").value = userModel?.image_url
+                        mutableData.child("name").value = userModel?.name
                     }
                     return Transaction.success(mutableData)
 
@@ -105,7 +108,9 @@ object MyChatManager {
                 override fun onComplete(databaseError: DatabaseError?, p1: Boolean, dataSnapshot: DataSnapshot?) {
                     try {
                         Log.d(TAG, "postTransaction:onComplete:" + databaseError)
-                        callback?.handleData(true, requestType)
+                        //callback?.handleData(true, requestType)
+                        var userModel: UserModel? = dataSnapshot?.getValue<UserModel>(UserModel::class.java)
+                        fetchMyGroups(callback, requestType, userModel)
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
@@ -159,7 +164,7 @@ object MyChatManager {
         group.groupId = groupId
 
         for (user in group.members) {
-            user.value.groups = hashMapOf()
+            user.value.group = hashMapOf()
             user.value.email = null
             user.value.image_url = null
             user.value.name = null
@@ -171,10 +176,34 @@ object MyChatManager {
             mUserRef?.child(user.value.uid)?.child(FirebaseConstants.GROUP)?.child(groupId)?.setValue(true)
         }
 
-
-
-
         callback?.handleData(true, requestType)
+    }
+
+    /**
+     * This function gets all the groups in which user is present.
+     */
+    fun fetchMyGroups(callback: NotifyMeInterface?, requestType: Int?, userModel: UserModel?) {
+        myGroups?.clear()
+        var i: Int = userModel?.group?.size!!
+        val groupListener = object : ValueEventListener {
+            override fun onCancelled(databaseError: DatabaseError) {}
+            override fun onDataChange(groupSnapshot: DataSnapshot) {
+                if (groupSnapshot.exists()) {
+                    myGroups?.add(groupSnapshot.getValue<GroupModel>(GroupModel::class.java)!!)
+                }
+                i--
+                if (i == 0) {
+                    callback?.handleData(true, requestType)
+                }
+            }
+        }
+
+        for (group in userModel?.group!!) {
+            if (group.value) {
+                mGroupRef?.child(group.key)?.addListenerForSingleValueEvent(groupListener)
+            }
+        }
+
     }
 
 

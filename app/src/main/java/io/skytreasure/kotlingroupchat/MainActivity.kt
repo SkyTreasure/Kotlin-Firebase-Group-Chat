@@ -6,6 +6,7 @@ import android.os.Bundle
 import kotlinx.android.synthetic.main.activity_main.*
 import android.view.View
 import io.skytreasure.kotlingroupchat.chat.ui.CreateGroupActivity
+import io.skytreasure.kotlingroupchat.chat.ui.ViewGroupsActivity
 
 class MainActivity : AppCompatActivity(), View.OnClickListener {
 
@@ -25,7 +26,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                 startActivity(intent)
             }
             R.id.btn_showgroup -> {
-
+                val intent = Intent(this@MainActivity, ViewGroupsActivity::class.java)
+                startActivity(intent)
             }
         }
     }
