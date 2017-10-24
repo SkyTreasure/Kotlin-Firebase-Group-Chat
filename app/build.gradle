@@ -70,7 +70,7 @@ dependencies {
 
     kapt "com.android.databinding:compiler:$android_plugin_version"
 
-
+    compile 'com.theartofdev.edmodo:android-image-cropper:2.3.1'
 
     compile 'com.google.android.gms:play-services-auth:11.0.4'
     compile 'com.firebaseui:firebase-ui-database:0.4.1'

@@ -17,13 +17,21 @@
             </intent-filter>
         </activity>
         <activity android:name=".login.LoginActivity">
-            <!-- <intent-filter>
+
+            <!--
+             <intent-filter>
                  <action android:name="android.intent.action.MAIN" />
 
                  <category android:name="android.intent.category.LAUNCHER" />
-             </intent-filter>-->
+             </intent-filter>
+            -->
         </activity>
-        <activity android:name=".chat.ui.CreateGroupActivity"></activity>
+        <activity android:name=".chat.ui.CreateGroupActivity" />
+        <activity android:name=".chat.ui.NewGroupActivity"></activity>
+        <activity
+            android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Base.Theme.AppCompat" />
     </application>
 
 </manifest>

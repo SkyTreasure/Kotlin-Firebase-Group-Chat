@@ -1,11 +1,25 @@
 package io.skytreasure.kotlingroupchat.chat.ui
 
+import android.Manifest
+import android.app.Activity
 import android.app.ProgressDialog
+import android.content.ContentResolver
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.net.Uri
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.MediaStore
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
+import android.util.Base64
 import android.view.View
+import android.webkit.MimeTypeMap
+import android.widget.Toast
+import com.theartofdev.edmodo.cropper.CropImage
+import com.theartofdev.edmodo.cropper.CropImageView
 import kotlinx.android.synthetic.main.activity_create_group.*
 
 import io.skytreasure.kotlingroupchat.R
@@ -18,6 +32,8 @@ import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.s
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.userList
 import io.skytreasure.kotlingroupchat.common.constants.NetworkConstants
 import io.skytreasure.kotlingroupchat.common.controller.NotifyMeInterface
+import java.io.ByteArrayOutputStream
+import java.io.IOException
 
 class CreateGroupActivity : AppCompatActivity(), View.OnClickListener {
 
@@ -49,6 +65,8 @@ class CreateGroupActivity : AppCompatActivity(), View.OnClickListener {
 
         }, NetworkConstants.GET_ALL_USERS_REQUEST)
 
+        tv_next.setOnClickListener(this@CreateGroupActivity)
+
 
     }
 
@@ -64,6 +82,12 @@ class CreateGroupActivity : AppCompatActivity(), View.OnClickListener {
                     selectedUserList?.add(`object` as UserModel)
                     secondaryAdapter?.notifyDataSetChanged()
                 }
+
+            }
+            if (selectedUserList?.size!! > 0) {
+                rv_selected_user.visibility = View.VISIBLE
+            } else {
+                rv_selected_user.visibility = View.GONE
             }
         }
     }
@@ -80,7 +104,21 @@ class CreateGroupActivity : AppCompatActivity(), View.OnClickListener {
     }
 
 
-    override fun onClick(v: View?) {
 
+
+
+
+    override fun onClick(v: View?) {
+        when (v?.id) {
+            R.id.tv_next -> {
+                if (selectedUserList?.size!! > 1 && selectedUserList?.size!! <= 6) {
+                    val intent = Intent(this@CreateGroupActivity, NewGroupActivity::class.java)
+                    startActivity(intent)
+                } else {
+                    Toast.makeText(this@CreateGroupActivity, "Number of members should be more than 2 and less than 7", Toast.LENGTH_LONG).show()
+                }
+
+            }
+        }
     }
 }

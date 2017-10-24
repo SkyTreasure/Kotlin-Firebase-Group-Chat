@@ -77,13 +77,18 @@
                 <requestFocus />
             </EditText>
 
-            <android.support.v7.widget.AppCompatImageView
-                android:id="@+id/search"
+            <TextView
+                android:id="@+id/tv_next"
                 android:layout_width="wrap_content"
                 android:layout_height="48dp"
                 android:layout_alignParentEnd="true"
+                android:text="Next"
+                android:textColor="@color/white"
+                android:textSize="@dimen/sp_18"
                 android:layout_centerVertical="true"
+                android:textStyle="bold"
                 android:padding="8dp"
+                android:layout_marginEnd="@dimen/dp_8"
                 app:srcCompat="@drawable/ic_arrow_forward_white_24dp" />
 
             <android.support.v7.widget.AppCompatImageView
@@ -105,6 +110,7 @@
         android:id="@+id/rv_selected_user"
         android:layout_width="match_parent"
         android:layout_height="100dp"
+        android:visibility="gone"
         android:layout_below="@+id/appbar" />
 
     <android.support.v7.widget.RecyclerView

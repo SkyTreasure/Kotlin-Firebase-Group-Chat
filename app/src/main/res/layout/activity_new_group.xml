@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="io.skytreasure.kotlingroupchat.chat.ui.NewGroupActivity">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="@color/red"
+        android:fitsSystemWindows="true">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <android.support.v7.widget.AppCompatImageView
+                android:id="@+id/iv_back"
+                android:layout_width="40dp"
+                android:layout_height="match_parent"
+                android:layout_centerVertical="true"
+                android:padding="@dimen/dp_4"
+                app:srcCompat="@drawable/ic_arrow_back_white_24dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="@dimen/dp_16"
+                android:layout_toEndOf="@+id/iv_back"
+                android:text="New Group"
+                android:textColor="@color/white"
+                android:textSize="@dimen/sp_18"
+                android:textStyle="bold" />
+        </RelativeLayout>
+
+    </android.support.v7.widget.Toolbar>
+
+
+    <android.support.v7.widget.AppCompatImageView
+        android:id="@+id/iv_profile"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_below="@+id/toolbar"
+        android:layout_margin="@dimen/dp_16"
+        app:srcCompat="@drawable/ic_photo_camera_black_24dp" />
+
+
+    <EditText
+        android:id="@+id/et_groupname"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/toolbar"
+        android:layout_marginEnd="@dimen/dp_16"
+        android:layout_marginTop="@dimen/dp_16"
+        android:layout_toEndOf="@+id/iv_profile"
+        android:hint="Group Name" />
+
+    <TextView
+        android:id="@+id/label_hint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/et_groupname"
+        android:layout_marginEnd="@dimen/dp_16"
+        android:layout_marginTop="@dimen/dp_8"
+        android:layout_toEndOf="@+id/iv_profile"
+        android:text="Please provide a group name and optional group icon" />
+
+    <View
+        android:id="@+id/view_1"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/dp_1"
+        android:layout_below="@+id/label_hint"
+        android:layout_marginTop="@dimen/dp_24"
+        android:background="@color/greyish" />
+
+    <TextView
+        android:id="@+id/tv_no_of_participants"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/view_1"
+        android:layout_margin="@dimen/dp_16"
+        android:text="7 Participants"
+        android:textColor="@color/black" />
+
+    <Button
+        android:id="@+id/btn_creategroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="@color/sky_blue"
+        android:text="Create Group"
+        android:textColor="@color/white" />
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/rv_main"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/btn_creategroup"
+        android:layout_below="@+id/tv_no_of_participants" />
+
+</RelativeLayout>
