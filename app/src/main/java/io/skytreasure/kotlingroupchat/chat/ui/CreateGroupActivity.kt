@@ -49,22 +49,35 @@ class CreateGroupActivity : AppCompatActivity(), View.OnClickListener {
         MyChatManager.setmContext(this@CreateGroupActivity)
         progressDialog = ProgressDialog(this)
         progressDialog!!.show()
-        MyChatManager.getAllUsersFromFirebase(object : NotifyMeInterface {
-            override fun handleData(`asv`: Any, requestCode: Int?) {
-                userList = `asv` as ArrayList<UserModel>
-                selectedUserList?.clear();
-                rv_user_list.layoutManager = LinearLayoutManager(this@CreateGroupActivity) as RecyclerView.LayoutManager?
-                adapter = UserListAdapter(this@CreateGroupActivity, userSelectionInterface)
-                rv_user_list.adapter = adapter
+        if (userList?.size == 0) {
+            MyChatManager.getAllUsersFromFirebase(object : NotifyMeInterface {
+                override fun handleData(`asv`: Any, requestCode: Int?) {
+                    userList = `asv` as ArrayList<UserModel>
+                    selectedUserList?.clear();
+                    rv_user_list.layoutManager = LinearLayoutManager(this@CreateGroupActivity) as RecyclerView.LayoutManager?
+                    adapter = UserListAdapter(this@CreateGroupActivity, userSelectionInterface)
+                    rv_user_list.adapter = adapter
 
-                rv_selected_user.layoutManager = LinearLayoutManager(this@CreateGroupActivity, LinearLayoutManager.HORIZONTAL, false);
-                secondaryAdapter = UserSelectionAdapter(this@CreateGroupActivity, userRemovedFromSelection)
-                rv_selected_user.adapter = secondaryAdapter
+                    rv_selected_user.layoutManager = LinearLayoutManager(this@CreateGroupActivity, LinearLayoutManager.HORIZONTAL, false);
+                    secondaryAdapter = UserSelectionAdapter(this@CreateGroupActivity, userRemovedFromSelection)
+                    rv_selected_user.adapter = secondaryAdapter
 
-                progressDialog!!.hide()
-            }
+                    progressDialog!!.hide()
+                }
 
-        }, NetworkConstants.GET_ALL_USERS_REQUEST)
+            }, NetworkConstants.GET_ALL_USERS_REQUEST)
+        } else {
+            selectedUserList?.clear();
+            rv_user_list.layoutManager = LinearLayoutManager(this@CreateGroupActivity) as RecyclerView.LayoutManager?
+            adapter = UserListAdapter(this@CreateGroupActivity, userSelectionInterface)
+            rv_user_list.adapter = adapter
+
+            rv_selected_user.layoutManager = LinearLayoutManager(this@CreateGroupActivity, LinearLayoutManager.HORIZONTAL, false);
+            secondaryAdapter = UserSelectionAdapter(this@CreateGroupActivity, userRemovedFromSelection)
+            rv_selected_user.adapter = secondaryAdapter
+            progressDialog!!.hide()
+        }
+
 
         tv_next.setOnClickListener(this@CreateGroupActivity)
 
@@ -103,10 +116,6 @@ class CreateGroupActivity : AppCompatActivity(), View.OnClickListener {
         }
 
     }
-
-
-
-
 
 
     override fun onClick(v: View?) {

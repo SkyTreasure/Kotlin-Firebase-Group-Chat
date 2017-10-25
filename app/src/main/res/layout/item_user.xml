@@ -42,16 +42,81 @@
             android:layout_marginStart="24dp"
             android:layout_marginTop="8dp"
             android:layout_toEndOf="@+id/iv_profile"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:text="Email ID"
             android:textColor="@color/home_page_textcolor" />
 
-        <View
+        <TextView
             android:id="@+id/view_online_status"
-            android:visibility="gone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
-            android:layout_margin="@dimen/dp_8"
-            android:layout_width="@dimen/dp_8"
-            android:layout_height="@dimen/dp_16"/>
+            android:layout_marginEnd="16dp"
+            android:layout_marginTop="28dp"
+            android:text="Online"
+            android:textColor="@color/green"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/tv_unreadcount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="@dimen/dp_16"
+            android:background="@drawable/chat_count"
+            android:maxLength="3"
+            android:padding="@dimen/dp_2"
+            android:text="99+"
+            android:textColor="@color/white"
+            android:visibility="gone" />
+
+        <android.support.v7.widget.AppCompatImageView
+            android:id="@+id/iv_overflow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="@dimen/dp_16"
+            android:layout_marginTop="@dimen/dp_4"
+            android:visibility="gone"
+            app:srcCompat="@drawable/ic_overflow_black_24dp" />
+
+        <TextView
+            android:id="@+id/label_admin"
+            android:text="Admin"
+            android:visibility="gone"
+            android:textColor="@color/green"
+            android:layout_toStartOf="@+id/iv_overflow"
+            android:layout_marginTop="@dimen/dp_8"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <LinearLayout
+            android:id="@+id/ll_otheritems"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toLeftOf="@+id/iv_overflow"
+            android:background="@color/white"
+            android:orientation="vertical"
+            android:padding="@dimen/dp_16"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/tv_make_admin"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="@dimen/dp_8"
+                android:text="Make Admin" />
+
+            <TextView
+                android:id="@+id/tv_remove_member"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="@dimen/dp_8"
+                android:text="Remove Member" />
+
+        </LinearLayout>
 
     </RelativeLayout>
 </layout>

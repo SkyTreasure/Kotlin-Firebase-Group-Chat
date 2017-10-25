@@ -51,11 +51,18 @@ class NewGroupActivity : AppCompatActivity(), View.OnClickListener {
         setContentView(R.layout.activity_new_group)
 
         rv_main.layoutManager = LinearLayoutManager(this@NewGroupActivity) as RecyclerView.LayoutManager?
-        adapter = ParticipantsAdapter()
+        adapter = ParticipantsAdapter(object : NotifyMeInterface {
+            override fun handleData(`object`: Any, requestCode: Int?) {
+                tv_no_of_participants.setText("" + selectedUserList?.size!! + " Participants")
+            }
+
+        })
         rv_main.adapter = adapter
 
         iv_profile.setOnClickListener(this@NewGroupActivity)
+        iv_back.setOnClickListener(this@NewGroupActivity)
         btn_creategroup.setOnClickListener(this@NewGroupActivity)
+        tv_no_of_participants.setText("" + selectedUserList?.size!! + " Participants")
     }
 
 
@@ -182,12 +189,16 @@ class NewGroupActivity : AppCompatActivity(), View.OnClickListener {
             R.id.btn_creategroup -> {
                 createGroup()
             }
+
+            R.id.iv_back -> {
+                finish()
+            }
         }
     }
 
     private fun createGroup() {
         var isValid: Boolean = true
-        var errorMessage: String = "No Error"
+        var errorMessage: String = "Validation Error"
 
         var groupName: String = et_groupname.text.toString()
 
@@ -206,15 +217,9 @@ class NewGroupActivity : AppCompatActivity(), View.OnClickListener {
         adminUserModel?.admin = true
 
         var groupMembers: HashMap<String, UserModel> = hashMapOf()
-/*
-
-        var tempList :MutableList<UserModel> = selectedUserList?.toMutableList()!!
-
-*/
 
 
         for (user in selectedUserList!!) {
-
             groupMembers.put(user.uid!!, user)
         }
 
@@ -237,7 +242,7 @@ class NewGroupActivity : AppCompatActivity(), View.OnClickListener {
 
             }, newGroup, NetworkConstants.CREATE_GROUP)
         } else {
-            Toast.makeText(this@NewGroupActivity, "Validation Error", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this@NewGroupActivity, errorMessage, Toast.LENGTH_SHORT).show()
         }
 
 

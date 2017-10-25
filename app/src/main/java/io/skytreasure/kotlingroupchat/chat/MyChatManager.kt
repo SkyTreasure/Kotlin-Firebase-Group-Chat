@@ -17,11 +17,14 @@ import io.skytreasure.kotlingroupchat.common.constants.DataConstants
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.groupMembersMap
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.groupMessageMap
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.myGroups
+import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.sCurrentUser
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.userMap
 import io.skytreasure.kotlingroupchat.common.constants.FirebaseConstants
 import io.skytreasure.kotlingroupchat.common.constants.PrefConstants
 import io.skytreasure.kotlingroupchat.common.controller.NotifyMeInterface
 import io.skytreasure.kotlingroupchat.common.util.SecurePrefs
+import io.skytreasure.kotlingroupchat.common.util.SharedPrefManager
+import java.util.*
 
 /**
  * Created by akash on 23/10/17.
@@ -163,6 +166,26 @@ ref.updateChildren(updatedUserData, new Firebase.CompletionListener() {
     }
 
     /**
+     * Function to fetch current user
+     */
+    fun fetchCurrentUser(callback: NotifyMeInterface?, uid: String?, requestType: Int?) {
+
+        mUserRef?.child(uid)?.addValueEventListener(object : ValueEventListener {
+            override fun onCancelled(p0: DatabaseError?) {
+                callback?.handleData(false, requestType)
+            }
+
+            override fun onDataChange(p0: DataSnapshot?) {
+                var userModel: UserModel? = p0?.getValue<UserModel>(UserModel::class.java)
+                sCurrentUser = userModel
+                SharedPrefManager.getInstance(mContext!!).savePreferences(PrefConstants.USER_DATA, Gson().toJson(sCurrentUser))
+                callback?.handleData(true, requestType)
+            }
+
+        })
+    }
+
+    /**
      * This function is called to set user status to offline
      */
     fun goOffline(callback: NotifyMeInterface?, userModel: UserModel?, requestType: Int?) {
@@ -205,12 +228,17 @@ ref.updateChildren(updatedUserData, new Firebase.CompletionListener() {
 
         val groupId = mGroupRef?.push()?.key
         group.groupId = groupId
+        var time = Calendar.getInstance().timeInMillis
 
         for (user in group.members) {
             user.value.group = hashMapOf()
             user.value.email = null
             user.value.image_url = null
             user.value.name = null
+            user.value.online = null
+            user.value.unread_group_count = 0
+            user.value.last_seen_message_timestamp = time.toString()
+            user.value.delete_till = time.toString()
         }
 
         mGroupRef?.child(groupId)?.setValue(group)
@@ -229,6 +257,10 @@ ref.updateChildren(updatedUserData, new Firebase.CompletionListener() {
         myGroups?.clear()
 
         var i: Int = userModel?.group?.size!!
+        if (i == 0) {
+            //No Groups
+            callback?.handleData(true, requestType)
+        }
         val groupListener = object : ValueEventListener {
             override fun onCancelled(databaseError: DatabaseError) {
                 Log.e("", "")

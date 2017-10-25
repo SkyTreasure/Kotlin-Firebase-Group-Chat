@@ -10,6 +10,7 @@ import android.widget.RelativeLayout
 import android.widget.TextView
 import io.skytreasure.kotlingroupchat.R
 import io.skytreasure.kotlingroupchat.chat.model.UserModel
+import io.skytreasure.kotlingroupchat.chat.ui.ViewHolders.UserRowViewHolder
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.mapList
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.userList
@@ -22,14 +23,14 @@ import io.skytreasure.kotlingroupchat.common.util.loadRoundImage
  */
 class UserListAdapter(context: Context,
                       var callback: NotifyMeInterface)
-    : RecyclerView.Adapter<UserListAdapter.ViewHolder>() {
+    : RecyclerView.Adapter<UserRowViewHolder>() {
 
-    var holderMap: MutableMap<String, ViewHolder> = mutableMapOf()
+    var holderMap: MutableMap<String, UserRowViewHolder> = mutableMapOf()
 
-    override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): ViewHolder =
-            ViewHolder(LayoutInflater.from(parent?.context).inflate(R.layout.item_user, parent, false))
+    override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): UserRowViewHolder =
+            UserRowViewHolder(LayoutInflater.from(parent?.context).inflate(R.layout.item_user, parent, false))
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: UserRowViewHolder, position: Int) {
         val user = userList?.get(position)
 
         holder.tvName.text = user?.name
@@ -39,7 +40,6 @@ class UserListAdapter(context: Context,
 
 
         if (user.online != null && user.online!!) {
-            holder.viewOnlineStatus.setBackgroundColor(R.color.green)
             holder.viewOnlineStatus.visibility = View.VISIBLE
         } else {
             // holder.viewOnlineStatus.setBackgroundColor(R.color.greyish)
@@ -71,12 +71,4 @@ class UserListAdapter(context: Context,
     override fun getItemCount(): Int = userList?.size!!
 
 
-    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        var ivProfile = itemView.findViewById(R.id.iv_profile) as AppCompatImageView
-        var tvName = itemView.findViewById(R.id.tv_name) as TextView
-        var tvEmail = itemView.findViewById(R.id.tv_email) as TextView
-        var layout = itemView.findViewById(R.id.rl_parent) as RelativeLayout
-        var ivSelected = itemView.findViewById(R.id.iv_selected) as AppCompatImageView
-        var viewOnlineStatus = itemView.findViewById(R.id.view_online_status) as View
-    }
 }
