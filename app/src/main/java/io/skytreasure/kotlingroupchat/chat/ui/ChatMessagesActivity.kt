@@ -13,7 +13,9 @@ import io.skytreasure.kotlingroupchat.chat.model.MessageModel
 import io.skytreasure.kotlingroupchat.chat.ui.adapter.ChatMessagesRecyclerAdapter
 import io.skytreasure.kotlingroupchat.common.constants.AppConstants
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants
+import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.groupMap
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.groupMembersMap
+import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.myGroups
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.sCurrentUser
 import io.skytreasure.kotlingroupchat.common.constants.NetworkConstants
 import io.skytreasure.kotlingroupchat.common.controller.NotifyMeInterface
@@ -25,6 +27,7 @@ class ChatMessagesActivity : AppCompatActivity(), View.OnClickListener {
 
     var adapter: ChatMessagesRecyclerAdapter? = null
     var groupId: String? = ""
+    var position: Int? = 0
     var progressDialog: ProgressDialog? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,6 +37,9 @@ class ChatMessagesActivity : AppCompatActivity(), View.OnClickListener {
         MyChatManager.setmContext(this@ChatMessagesActivity)
 
         groupId = intent.getStringExtra(AppConstants.GROUP_ID)
+        position = intent.getIntExtra(AppConstants.POSITION, 1)
+
+        chat_room_title.text = myGroups?.get(position!!)?.name
 
         chat_messages_recycler.layoutManager = LinearLayoutManager(this@ChatMessagesActivity) as RecyclerView.LayoutManager?
 

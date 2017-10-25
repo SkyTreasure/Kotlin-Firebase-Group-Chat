@@ -45,6 +45,7 @@ class ViewGroupsAdapter(val context: Context) : RecyclerView.Adapter<UserRowView
         holder.layout.setOnClickListener({
             val intent = Intent(context, ChatMessagesActivity::class.java)
             intent.putExtra(AppConstants.GROUP_ID, group.groupId)
+            intent.putExtra(AppConstants.POSITION,position)
             context.startActivity(intent)
         })
 
