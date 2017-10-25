@@ -13,4 +13,5 @@ public class NetworkConstants {
     public static final int CREATE_GROUP=1006;
     public static final int SEND_MESSAGE_REQUEST=1007;
     public static final int FETCH_GROUP_MEMBERS_DETAILS=1008;
+    public static final int GO_OFFLINE=1009;
 }

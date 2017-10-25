@@ -37,6 +37,15 @@ class UserListAdapter(context: Context,
 
         loadRoundImage(holder.ivProfile, user?.image_url!!)
 
+
+        if (user.online != null && user.online!!) {
+            holder.viewOnlineStatus.setBackgroundColor(R.color.green)
+            holder.viewOnlineStatus.visibility = View.VISIBLE
+        } else {
+            // holder.viewOnlineStatus.setBackgroundColor(R.color.greyish)
+            holder.viewOnlineStatus.visibility = View.GONE
+        }
+
         holder.layout.setOnClickListener {
 
             if (mapList.containsKey(userList?.get(position)?.uid)) {
@@ -68,5 +77,6 @@ class UserListAdapter(context: Context,
         var tvEmail = itemView.findViewById(R.id.tv_email) as TextView
         var layout = itemView.findViewById(R.id.rl_parent) as RelativeLayout
         var ivSelected = itemView.findViewById(R.id.iv_selected) as AppCompatImageView
+        var viewOnlineStatus = itemView.findViewById(R.id.view_online_status) as View
     }
 }

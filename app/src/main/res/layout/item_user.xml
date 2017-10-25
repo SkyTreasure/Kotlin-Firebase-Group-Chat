@@ -45,5 +45,13 @@
             android:text="Email ID"
             android:textColor="@color/home_page_textcolor" />
 
+        <View
+            android:id="@+id/view_online_status"
+            android:visibility="gone"
+            android:layout_alignParentEnd="true"
+            android:layout_margin="@dimen/dp_8"
+            android:layout_width="@dimen/dp_8"
+            android:layout_height="@dimen/dp_16"/>
+
     </RelativeLayout>
 </layout>

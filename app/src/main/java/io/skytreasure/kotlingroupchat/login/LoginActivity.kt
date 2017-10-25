@@ -1,5 +1,6 @@
 package io.skytreasure.kotlingroupchat.login
 
+import android.app.ProgressDialog
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
@@ -29,6 +30,7 @@ import com.google.gson.Gson
 import io.skytreasure.kotlingroupchat.MainActivity
 import io.skytreasure.kotlingroupchat.chat.MyChatManager
 import io.skytreasure.kotlingroupchat.chat.model.UserModel
+import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.sCurrentUser
 import io.skytreasure.kotlingroupchat.common.constants.NetworkConstants
 import io.skytreasure.kotlingroupchat.common.constants.PrefConstants
 import io.skytreasure.kotlingroupchat.common.controller.NotifyMeInterface
@@ -45,24 +47,38 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener, GoogleApiClient
     private var prevUser: FirebaseUser? = null
     var currentUser: FirebaseUser? = null
     var mUserModel: UserModel? = UserModel()
+    val progressDialog: ProgressDialog? = null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
-
-
         mAuth = FirebaseAuth.getInstance()
         MyChatManager.init(this@LoginActivity)
         btn_google.setOnClickListener(this)
         setupGoogleSignIn()
+        sCurrentUser = SharedPrefManager.getInstance(this@LoginActivity).savedUserModel
+        progressDialog?.show()
+
+        /**
+         * If user has already logged in then pass the saved usermodel to loginCreateAndUpdate
+         * method.
+         */
+        if (sCurrentUser != null) {
+            MyChatManager.loginCreateAndUpdate(object : NotifyMeInterface {
+                override fun handleData(`object`: Any, requestCode: Int?) {
+                    progressDialog?.hide()
+                    val intent = Intent(this@LoginActivity, MainActivity::class.java)
+                    startActivity(intent)
+                    finish()
+                }
+
+            }, sCurrentUser, NetworkConstants.LOGIN_REQUEST)
 
 
-        if (SharedPrefManager.getInstance(this@LoginActivity).savedUserModel != null) {
-           /* val intent = Intent(this@LoginActivity, MainActivity::class.java)
-            startActivity(intent)
-            finish()*/
+        } else {
+            progressDialog?.hide()
         }
     }
 
@@ -131,7 +147,7 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener, GoogleApiClient
                 mUserModel?.name = user?.displayName!!
                 mUserModel?.email = user?.email!!
                 mUserModel?.image_url = user?.photoUrl.toString()
-
+                mUserModel?.online = true
                 SharedPrefManager.getInstance(this@LoginActivity).savePreferences(PrefConstants.USER_DATA, Gson().toJson(mUserModel))
                 SecurePrefs(this@LoginActivity).put(PrefConstants.USER_ID, user?.uid!!)
                 SecurePrefs(this@LoginActivity).put(PrefConstants.USER_EMAIL, user?.email!!)
@@ -145,7 +161,7 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener, GoogleApiClient
                     mUserModel?.name = currentUser?.displayName!!
                     mUserModel?.email = currentUser?.email!!
                     mUserModel?.image_url = currentUser?.photoUrl.toString()
-
+                    mUserModel?.online = true
                     SecurePrefs(this@LoginActivity).put(PrefConstants.USER_ID, currentUser?.uid!!)
                     SecurePrefs(this@LoginActivity).put(PrefConstants.USER_EMAIL, currentUser?.email!!)
                     SharedPrefManager.getInstance(this@LoginActivity).savePreferences(PrefConstants.USER_DATA, Gson().toJson(mUserModel))

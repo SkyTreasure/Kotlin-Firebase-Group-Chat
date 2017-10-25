@@ -89,6 +89,38 @@ object MyChatManager {
 
     }
 
+    /*
+    * Firebase ref = Firebase(url: "https://<YOUR-FIREBASE-APP>.firebaseio.com");
+Firebase userRef = ref.child("user");
+Map newUserData = new HashMap();
+newUserData.put("age", 30);
+newUserData.put("city", "Provo, UT");
+userRef.updateChildren(newUserData);
+    * */
+    //TODO: Update multiple items at once
+    /*
+    * Firebase ref = new Firebase("https://<YOUR-FIREBASE-APP>.firebaseio.com");
+// Generate a new push ID for the new post
+Firebase newPostRef = ref.child("posts").push();
+String newPostKey = newPostRef.getKey();
+// Create the data we want to update
+Map newPost = new HashMap();
+newPost.put("title", "New Post");
+newPost.put("content", "Here is my new post!");
+Map updatedUserData = new HashMap();
+updatedUserData.put("users/posts/" + newPostKey, true);
+updatedUserData.put("posts/" + newPostKey, newPost);
+// Do a deep-path update
+ref.updateChildren(updatedUserData, new Firebase.CompletionListener() {
+   @Override
+   public void onComplete(FirebaseError firebaseError, Firebase firebase) {
+       if (firebaseError != null) {
+           System.out.println("Error updating data: " + firebaseError.getMessage());
+       }
+   }
+});
+    * */
+
     /**
      * Login if node is already present then just update the name and imageurl and don't alter any other field.
      *
@@ -101,8 +133,11 @@ object MyChatManager {
                     if (p == null) {
                         mutableData.setValue(userModel)
                     } else {
-                        mutableData.child("image_url").value = userModel?.image_url
-                        mutableData.child("name").value = userModel?.name
+                        var newUserData: HashMap<String, Any?> = hashMapOf();
+                        newUserData.put("image_url", userModel?.image_url)
+                        newUserData.put("name", userModel?.name)
+                        newUserData.put("online", true)
+                        mUserRef?.child(userModel?.uid)?.updateChildren(newUserData)
                     }
                     return Transaction.success(mutableData)
 
@@ -128,6 +163,14 @@ object MyChatManager {
     }
 
     /**
+     * This function is called to set user status to offline
+     */
+    fun goOffline(callback: NotifyMeInterface?, userModel: UserModel?, requestType: Int?) {
+        mUserRef?.child(userModel?.uid)?.child(FirebaseConstants.ONLINE)?.setValue(false)
+        callback?.handleData(true, requestType)
+    }
+
+    /**
      * Get user list from firebase
      */
     fun getAllUsersFromFirebase(callback: NotifyMeInterface?, requestType: Int?) {
@@ -138,9 +181,6 @@ object MyChatManager {
             override fun onDataChange(dataSnaphot: DataSnapshot) {
                 if (dataSnaphot.exists()) {
                     var userList: ArrayList<UserModel> = ArrayList()
-                    /*dataSnaphot.getValue<UserModel>(UserModel::class.java)?.let {
-                        userList.add(it)
-                    }*/
                     dataSnaphot.children.forEach { it ->
                         it.getValue<UserModel>(UserModel::class.java)?.let {
                             if (!SecurePrefs(mContext!!).get(PrefConstants.USER_ID).equals(it.uid)) {
@@ -153,7 +193,7 @@ object MyChatManager {
             }
         }
 
-        mUserRef?.addListenerForSingleValueEvent(listener)
+        mUserRef?.addValueEventListener(listener)
 
     }
 
@@ -190,7 +230,10 @@ object MyChatManager {
 
         var i: Int = userModel?.group?.size!!
         val groupListener = object : ValueEventListener {
-            override fun onCancelled(databaseError: DatabaseError) {}
+            override fun onCancelled(databaseError: DatabaseError) {
+                Log.e("", "")
+            }
+
             override fun onDataChange(groupSnapshot: DataSnapshot) {
                 if (groupSnapshot.exists()) {
                     var groupModel: GroupModel = groupSnapshot.getValue<GroupModel>(GroupModel::class.java)!!
