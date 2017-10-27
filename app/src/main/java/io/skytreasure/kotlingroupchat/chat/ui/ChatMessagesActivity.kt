@@ -1,6 +1,7 @@
 package io.skytreasure.kotlingroupchat.chat.ui
 
 import android.app.ProgressDialog
+import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v7.widget.LinearLayoutManager
@@ -95,6 +96,9 @@ class ChatMessagesActivity : AppCompatActivity(), View.OnClickListener {
             }
 
             R.id.chat_room_title -> {
+                val intent = Intent(this@ChatMessagesActivity, GroupDetailsActivity::class.java)
+                intent.putExtra(AppConstants.GROUP_ID, groupId)
+                startActivity(intent)
 
             }
         }
@@ -149,4 +153,6 @@ class ChatMessagesActivity : AppCompatActivity(), View.OnClickListener {
         chat_messages_recycler.setLayoutManager(mLinearLayoutManager)
         chat_messages_recycler.setAdapter(firebaseAdapter)
     }
+
+
 }

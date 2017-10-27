@@ -13,10 +13,19 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
+import android.text.format.DateFormat
 import android.util.Base64
+import android.util.Log
 import android.view.View
 import android.webkit.MimeTypeMap
 import android.widget.Toast
+import com.google.android.gms.tasks.OnFailureListener
+import com.google.android.gms.tasks.OnSuccessListener
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
+import com.google.firebase.storage.UploadTask
 import com.theartofdev.edmodo.cropper.CropImage
 import com.theartofdev.edmodo.cropper.CropImageView
 import io.skytreasure.kotlingroupchat.MainActivity
@@ -24,21 +33,32 @@ import kotlinx.android.synthetic.main.activity_new_group.*
 
 import io.skytreasure.kotlingroupchat.R
 import io.skytreasure.kotlingroupchat.chat.MyChatManager
+import io.skytreasure.kotlingroupchat.chat.model.FileModel
 import io.skytreasure.kotlingroupchat.chat.model.GroupModel
+import io.skytreasure.kotlingroupchat.chat.model.MessageModel
 import io.skytreasure.kotlingroupchat.chat.model.UserModel
 import io.skytreasure.kotlingroupchat.chat.ui.adapter.ParticipantsAdapter
+import io.skytreasure.kotlingroupchat.common.constants.AppConstants
+import io.skytreasure.kotlingroupchat.common.constants.DataConstants
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.selectedUserList
+import io.skytreasure.kotlingroupchat.common.constants.FirebaseConstants
 import io.skytreasure.kotlingroupchat.common.constants.NetworkConstants
 import io.skytreasure.kotlingroupchat.common.controller.NotifyMeInterface
 import io.skytreasure.kotlingroupchat.common.util.SharedPrefManager
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.IOException
+import java.util.*
 
-class NewGroupActivity : AppCompatActivity(), View.OnClickListener {
+
+class GroupDetailsActivity : AppCompatActivity(), View.OnClickListener {
 
     var adapter: ParticipantsAdapter? = null
     private var mCropImageUri: Uri? = null
     private var resultUri: Uri? = null
+    var storage = FirebaseStorage.getInstance()
+    var groupId: String? = ""
+    var storageRef: StorageReference? = null
 
     companion object {
 
@@ -50,18 +70,46 @@ class NewGroupActivity : AppCompatActivity(), View.OnClickListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_new_group)
 
-        rv_main.layoutManager = LinearLayoutManager(this@NewGroupActivity) as RecyclerView.LayoutManager?
-        adapter = ParticipantsAdapter(object : NotifyMeInterface {
-            override fun handleData(`object`: Any, requestCode: Int?) {
-                tv_no_of_participants.setText("" + selectedUserList?.size!! + " Participants")
+        storageRef = storage.getReferenceFromUrl(NetworkConstants.URL_STORAGE_REFERENCE).child(NetworkConstants.FOLDER_STORAGE_IMG)
+
+        rv_main.layoutManager = LinearLayoutManager(this@GroupDetailsActivity) as RecyclerView.LayoutManager?
+
+
+        groupId = intent.getStringExtra(AppConstants.GROUP_ID)
+
+        if (groupId != null) {
+            //Group Details page
+            btn_creategroup.text = "Update Group Name"
+            selectedUserList?.clear()
+            et_groupname.setText(DataConstants.sGroupMap?.get(groupId!!)?.name!!.toString())
+
+            DataConstants.sGroupMap?.get(groupId!!)?.members?.forEach { member ->
+                selectedUserList?.add(member.value)
+                selectedUserList?.add(DataConstants.sCurrentUser!!)
             }
 
-        })
-        rv_main.adapter = adapter
+            adapter = ParticipantsAdapter(object : NotifyMeInterface {
+                override fun handleData(`object`: Any, requestCode: Int?) {
+                    tv_no_of_participants.setText("" + selectedUserList?.size!! + " Participants")
+                }
 
-        iv_profile.setOnClickListener(this@NewGroupActivity)
-        iv_back.setOnClickListener(this@NewGroupActivity)
-        btn_creategroup.setOnClickListener(this@NewGroupActivity)
+            })
+            rv_main.adapter = adapter
+        } else {
+            // Group Creation Page
+            btn_creategroup.text = "Create Group"
+            adapter = ParticipantsAdapter(object : NotifyMeInterface {
+                override fun handleData(`object`: Any, requestCode: Int?) {
+                    tv_no_of_participants.setText("" + selectedUserList?.size!! + " Participants")
+                }
+
+            })
+            rv_main.adapter = adapter
+        }
+
+        iv_profile.setOnClickListener(this@GroupDetailsActivity)
+        iv_back.setOnClickListener(this@GroupDetailsActivity)
+        btn_creategroup.setOnClickListener(this@GroupDetailsActivity)
         tv_no_of_participants.setText("" + selectedUserList?.size!! + " Participants")
     }
 
@@ -92,6 +140,7 @@ class NewGroupActivity : AppCompatActivity(), View.OnClickListener {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+
 
         if (requestCode == CropImage.PICK_IMAGE_CHOOSER_REQUEST_CODE && resultCode == AppCompatActivity.RESULT_OK) {
             val imageUri = CropImage.getPickImageResultUri(this, data)
@@ -126,7 +175,9 @@ class NewGroupActivity : AppCompatActivity(), View.OnClickListener {
                 val mimeType = getMimeType(resultUri, this) + ";base64,"//data:image/jpeg;base64,
                 val s = img + mimeType + getBase64EncodedImage(resultUri, this) as String
                 //callProfilePictureApi(s)
-
+                if (groupId != null) {
+                    sendFileFirebase(storageRef, resultUri!!, groupId!!)
+                }
                 iv_profile.setImageURI(resultUri)
             } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
                 result.error
@@ -169,13 +220,13 @@ class NewGroupActivity : AppCompatActivity(), View.OnClickListener {
      **/
 
     fun cropImage() {
-        if (CropImage.isExplicitCameraPermissionRequired(this@NewGroupActivity)) {
+        if (CropImage.isExplicitCameraPermissionRequired(this@GroupDetailsActivity)) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 requestPermissions(arrayOf(Manifest.permission.CAMERA), CropImage.CAMERA_CAPTURE_PERMISSIONS_REQUEST_CODE)
             }
         } else {
             //CropImage.getPickImageChooserIntent(this)
-            CropImage.startPickImageActivity(this@NewGroupActivity)
+            CropImage.startPickImageActivity(this@GroupDetailsActivity)
         }
     }
 
@@ -187,12 +238,25 @@ class NewGroupActivity : AppCompatActivity(), View.OnClickListener {
             }
 
             R.id.btn_creategroup -> {
-                createGroup()
+                if (btn_creategroup.text.equals("Create Group")) {
+                    createGroup()
+                } else {
+                    updateName()
+                }
+
             }
 
             R.id.iv_back -> {
                 finish()
             }
+        }
+    }
+
+    private fun updateName() {
+        if (!et_groupname.text.isBlank() && et_groupname.text.length > 2) {
+            var mFirebaseDatabaseReference: DatabaseReference? = FirebaseDatabase.getInstance().reference.child(FirebaseConstants.GROUP).child(groupId)
+            mFirebaseDatabaseReference?.child(FirebaseConstants.NAME)?.setValue(et_groupname.text.toString())
+            Toast.makeText(this@GroupDetailsActivity, "Name Updated successful", Toast.LENGTH_LONG).show()
         }
     }
 
@@ -213,7 +277,7 @@ class NewGroupActivity : AppCompatActivity(), View.OnClickListener {
 
         var groupImage: String = "https://cdn1.iconfinder.com/data/icons/google_jfk_icons_by_carlosjj/128/groups.png"
         var newGroup: GroupModel = GroupModel(groupName, groupImage, group_deleted = false, group = true)
-        var adminUserModel: UserModel? = SharedPrefManager.getInstance(this@NewGroupActivity).savedUserModel
+        var adminUserModel: UserModel? = SharedPrefManager.getInstance(this@GroupDetailsActivity).savedUserModel
         adminUserModel?.admin = true
 
         var groupMembers: HashMap<String, UserModel> = hashMapOf()
@@ -228,23 +292,63 @@ class NewGroupActivity : AppCompatActivity(), View.OnClickListener {
 
         newGroup.members = groupMembers
 
-        MyChatManager.setmContext(this@NewGroupActivity)
+        MyChatManager.setmContext(this@GroupDetailsActivity)
 
         if (isValid) {
 
+            sendFileFirebase(storageRef, resultUri!!, groupId!!)
+
             MyChatManager.createGroup(object : NotifyMeInterface {
                 override fun handleData(`object`: Any, requestCode: Int?) {
-                    Toast.makeText(this@NewGroupActivity, "Group has been created successful", Toast.LENGTH_SHORT).show()
-                    val intent = Intent(this@NewGroupActivity, MainActivity::class.java)
+                    Toast.makeText(this@GroupDetailsActivity, "Group has been created successful", Toast.LENGTH_SHORT).show()
+                    val intent = Intent(this@GroupDetailsActivity, MainActivity::class.java)
                     startActivity(intent)
                     finish()
                 }
 
             }, newGroup, NetworkConstants.CREATE_GROUP)
         } else {
-            Toast.makeText(this@NewGroupActivity, errorMessage, Toast.LENGTH_SHORT).show()
+            Toast.makeText(this@GroupDetailsActivity, errorMessage, Toast.LENGTH_SHORT).show()
         }
 
 
     }
+
+
+    private fun sendFileFirebase(storageReference: StorageReference?, file: File, groupId: String) {
+        if (storageReference != null) {
+            var mFirebaseDatabaseReference: DatabaseReference? = FirebaseDatabase.getInstance().reference.child(FirebaseConstants.GROUP).child(groupId)
+            val uploadTask = storageReference.putFile(Uri.fromFile(file))
+            uploadTask.addOnFailureListener { e -> Log.e("", "onFailure sendFileFirebase " + e.message) }.addOnSuccessListener { taskSnapshot ->
+                Log.i("", "onSuccess sendFileFirebase")
+                val downloadUrl = taskSnapshot.downloadUrl
+                mFirebaseDatabaseReference?.child(FirebaseConstants.IMAGE_URL)?.setValue(downloadUrl)
+            }
+        } else {
+            //IS NULL
+        }
+
+    }
+
+    fun sendFileFirebase(storageReference: StorageReference?, file: Uri, groupId: String) {
+        if (storageReference != null) {
+            var mFirebaseDatabaseReference: DatabaseReference? = FirebaseDatabase.getInstance().reference.child(FirebaseConstants.GROUP).child(groupId)
+            val name = DateFormat.format("yyyy-MM-dd_hhmmss", Date()).toString()
+            val imageGalleryRef = storageReference.child(name + "_gallery")
+            val uploadTask = imageGalleryRef.putFile(file)
+            uploadTask.addOnFailureListener { e -> Log.e("", "onFailure sendFileFirebase " + e.message) }.addOnSuccessListener { taskSnapshot ->
+                Log.i("", "onSuccess sendFileFirebase")
+                val downloadUrl = taskSnapshot.downloadUrl
+                val fileModel = FileModel("img", downloadUrl!!.toString(), name, "")
+
+                // val chatModel = MessageModel(tfUserModel.getUserId(), ffUserModel.getUserId(), ffUserModel, Calendar.getInstance().time.time.toString() + "", fileModel)
+                mFirebaseDatabaseReference?.child(FirebaseConstants.IMAGE_URL)?.setValue(downloadUrl)
+                Toast.makeText(this@GroupDetailsActivity, "Group Image Updated successful", Toast.LENGTH_LONG).show()
+            }
+        } else {
+            //IS NULL
+        }
+
+    }
+
 }

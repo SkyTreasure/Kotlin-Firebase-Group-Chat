@@ -25,41 +25,45 @@ class ParticipantsAdapter(var callback: NotifyMeInterface) : RecyclerView.Adapte
     override fun onBindViewHolder(holder: UserRowViewHolder, position: Int) {
         val user = DataConstants.selectedUserList?.get(position)
 
-        holder.tvName.text = user?.name
-        holder.tvEmail.text = user?.email
+      try{
+          holder.tvName.text = user?.name
+          holder.tvEmail.text = user?.email
 
-        loadRoundImage(holder.ivProfile, user?.image_url!!)
-        holder.ivOverflow.visibility = View.VISIBLE
+          loadRoundImage(holder.ivProfile, user?.image_url!!)
+          holder.ivOverflow.visibility = View.VISIBLE
 
-        if (user.admin != null && user.admin!!) {
-            holder.labelAdmin.visibility = View.VISIBLE
-        } else {
-            holder.labelAdmin.visibility = View.GONE
-            user.admin = false
-        }
+          if (user.admin != null && user.admin!!) {
+              holder.labelAdmin.visibility = View.VISIBLE
+          } else {
+              holder.labelAdmin.visibility = View.GONE
+              user.admin = false
+          }
 
-        holder.ivOverflow.setOnClickListener({
-            holder.llOverflowItems.visibility = View.VISIBLE
-        })
+          holder.ivOverflow.setOnClickListener({
+              holder.llOverflowItems.visibility = View.VISIBLE
+          })
 
-        holder.tvMakeAdmin.setOnClickListener({
-            holder.llOverflowItems.visibility = View.GONE
-            if (holder.tvMakeAdmin.text.equals("Make Admin")) {
-                user.admin = true
-                holder.tvMakeAdmin.text = "Remove Admin"
-                holder.labelAdmin.visibility = View.VISIBLE
-            } else {
-                user.admin = false
-                holder.labelAdmin.visibility = View.GONE
-            }
-        })
+          holder.tvMakeAdmin.setOnClickListener({
+              holder.llOverflowItems.visibility = View.GONE
+              if (holder.tvMakeAdmin.text.equals("Make Admin")) {
+                  user.admin = true
+                  holder.tvMakeAdmin.text = "Remove Admin"
+                  holder.labelAdmin.visibility = View.VISIBLE
+              } else {
+                  user.admin = false
+                  holder.labelAdmin.visibility = View.GONE
+              }
+          })
 
-        holder.tvRemoveMember.setOnClickListener({
-            holder.llOverflowItems.visibility = View.GONE
-            DataConstants.selectedUserList?.remove(user)
-            notifyDataSetChanged()
-            callback.handleData(true, 1);
-        })
+          holder.tvRemoveMember.setOnClickListener({
+              holder.llOverflowItems.visibility = View.GONE
+              DataConstants.selectedUserList?.remove(user)
+              notifyDataSetChanged()
+              callback.handleData(true, 1);
+          })
+      }catch (e : Exception){
+          e.printStackTrace()
+      }
 
     }
 

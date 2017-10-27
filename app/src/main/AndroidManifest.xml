@@ -27,7 +27,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".chat.ui.CreateGroupActivity" />
-        <activity android:name=".chat.ui.NewGroupActivity" />
+        <activity android:name=".chat.ui.GroupDetailsActivity" />
         <activity
             android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
             android:screenOrientation="portrait"

@@ -172,20 +172,27 @@ ref.updateChildren(updatedUserData, new Firebase.CompletionListener() {
      * Function to fetch current user
      */
     fun fetchCurrentUser(callback: NotifyMeInterface?, uid: String?, requestType: Int?) {
+        try{
+            if (mUserRef != null && uid!=null) {
+                mUserRef?.child(uid)?.addValueEventListener(object : ValueEventListener {
+                    override fun onCancelled(p0: DatabaseError?) {
+                        callback?.handleData(false, requestType)
+                    }
 
-        mUserRef?.child(uid)?.addValueEventListener(object : ValueEventListener {
-            override fun onCancelled(p0: DatabaseError?) {
-                callback?.handleData(false, requestType)
+                    override fun onDataChange(p0: DataSnapshot?) {
+                        var userModel: UserModel? = p0?.getValue<UserModel>(UserModel::class.java)
+                        sCurrentUser = userModel
+                        SharedPrefManager.getInstance(mContext!!).savePreferences(PrefConstants.USER_DATA, Gson().toJson(sCurrentUser))
+                        callback?.handleData(true, requestType)
+                    }
+
+                })
             }
+        }catch (e : Exception){
+            e.printStackTrace()
+        }
 
-            override fun onDataChange(p0: DataSnapshot?) {
-                var userModel: UserModel? = p0?.getValue<UserModel>(UserModel::class.java)
-                sCurrentUser = userModel
-                SharedPrefManager.getInstance(mContext!!).savePreferences(PrefConstants.USER_DATA, Gson().toJson(sCurrentUser))
-                callback?.handleData(true, requestType)
-            }
 
-        })
     }
 
     /**
