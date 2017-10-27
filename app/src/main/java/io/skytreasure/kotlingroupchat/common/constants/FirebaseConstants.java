@@ -8,5 +8,11 @@ public class FirebaseConstants {
     public static final String USERS = "users";
     public static final String GROUP = "group";
     public static final String MESSAGES = "messages";
-    public static final String ONLINE="online";
+    public static final String ONLINE = "online";
+    public static final String MEMBERS = "members";
+    public static final String UNREAD_GROUP_COUNT = "unread_group_count";
+    /**
+     * last_seen_message_timestamp
+     */
+    public static final String L_S_M_T = "last_seen_message_timestamp";
 }

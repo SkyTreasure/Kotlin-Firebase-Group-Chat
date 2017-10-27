@@ -14,6 +14,7 @@ import io.skytreasure.kotlingroupchat.chat.ui.ChatMessagesActivity
 import io.skytreasure.kotlingroupchat.chat.ui.ViewHolders.UserRowViewHolder
 import io.skytreasure.kotlingroupchat.common.constants.AppConstants
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants
+import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.sCurrentUser
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.userMap
 import io.skytreasure.kotlingroupchat.common.util.loadRoundImage
 
@@ -26,7 +27,7 @@ class ViewGroupsAdapter(val context: Context) : RecyclerView.Adapter<UserRowView
             UserRowViewHolder(LayoutInflater.from(parent?.context).inflate(R.layout.item_user, parent, false))
 
     override fun onBindViewHolder(holder: UserRowViewHolder, position: Int) {
-        val group = DataConstants.myGroups?.get(position)
+        val group = DataConstants.sMyGroups?.get(position)
 
 
 
@@ -38,6 +39,14 @@ class ViewGroupsAdapter(val context: Context) : RecyclerView.Adapter<UserRowView
             holder.tvEmail.text = "No messages in the group"
         }
 
+        if (group.members.get(sCurrentUser?.uid!!)?.unread_group_count!! > 0) {
+            holder.tvUnreadCount.visibility = View.VISIBLE
+            holder.tvUnreadCount.text = group.members.get(sCurrentUser?.uid!!)?.unread_group_count!!.toString()
+        } else {
+            holder.tvUnreadCount.visibility = View.GONE
+        }
+
+
 
 
         loadRoundImage(holder.ivProfile, group?.image_url!!)
@@ -45,13 +54,13 @@ class ViewGroupsAdapter(val context: Context) : RecyclerView.Adapter<UserRowView
         holder.layout.setOnClickListener({
             val intent = Intent(context, ChatMessagesActivity::class.java)
             intent.putExtra(AppConstants.GROUP_ID, group.groupId)
-            intent.putExtra(AppConstants.POSITION,position)
+            intent.putExtra(AppConstants.POSITION, position)
             context.startActivity(intent)
         })
 
     }
 
-    override fun getItemCount(): Int = DataConstants.myGroups?.size!!
+    override fun getItemCount(): Int = DataConstants.sMyGroups?.size!!
 
 
 }

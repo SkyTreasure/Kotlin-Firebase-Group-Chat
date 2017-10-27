@@ -5,6 +5,7 @@ import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
+import android.view.View
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_view_groups.*
 
@@ -12,10 +13,19 @@ import io.skytreasure.kotlingroupchat.R
 import io.skytreasure.kotlingroupchat.chat.MyChatManager
 import io.skytreasure.kotlingroupchat.chat.ui.adapter.ViewGroupsAdapter
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.sCurrentUser
+import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.sGroupMap
+import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.sMyGroups
 import io.skytreasure.kotlingroupchat.common.constants.NetworkConstants
 import io.skytreasure.kotlingroupchat.common.controller.NotifyMeInterface
 
-class ViewGroupsActivity : AppCompatActivity() {
+class ViewGroupsActivity : AppCompatActivity(), View.OnClickListener {
+    override fun onClick(v: View?) {
+        when (v?.id) {
+            R.id.iv_back -> {
+                finish()
+            }
+        }
+    }
 
     var adapter: ViewGroupsAdapter? = null
     var progressDialog: ProgressDialog? = null
@@ -48,12 +58,16 @@ class ViewGroupsActivity : AppCompatActivity() {
     private fun fetchMyGroups() {
         MyChatManager.fetchMyGroups(object : NotifyMeInterface {
             override fun handleData(`object`: Any, requestCode: Int?) {
+                sMyGroups?.clear()
+                for (group in sGroupMap!!) {
+                    sMyGroups?.add(group.value)
+                }
                 rv_main.layoutManager = LinearLayoutManager(this@ViewGroupsActivity) as RecyclerView.LayoutManager?
                 adapter = ViewGroupsAdapter(this@ViewGroupsActivity)
                 rv_main.adapter = adapter
                 progressDialog?.hide()
             }
 
-        }, NetworkConstants.FETCH_GROUPS, sCurrentUser)
+        }, NetworkConstants.FETCH_GROUPS, sCurrentUser, isSingleEvent = false)
     }
 }

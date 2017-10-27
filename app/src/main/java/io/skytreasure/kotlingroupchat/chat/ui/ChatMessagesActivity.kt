@@ -13,9 +13,8 @@ import io.skytreasure.kotlingroupchat.chat.model.MessageModel
 import io.skytreasure.kotlingroupchat.chat.ui.adapter.ChatMessagesRecyclerAdapter
 import io.skytreasure.kotlingroupchat.common.constants.AppConstants
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants
-import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.groupMap
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.groupMembersMap
-import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.myGroups
+import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.sMyGroups
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.sCurrentUser
 import io.skytreasure.kotlingroupchat.common.constants.NetworkConstants
 import io.skytreasure.kotlingroupchat.common.controller.NotifyMeInterface
@@ -34,12 +33,16 @@ class ChatMessagesActivity : AppCompatActivity(), View.OnClickListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat_messages)
 
-        MyChatManager.setmContext(this@ChatMessagesActivity)
-
         groupId = intent.getStringExtra(AppConstants.GROUP_ID)
         position = intent.getIntExtra(AppConstants.POSITION, 1)
 
-        chat_room_title.text = myGroups?.get(position!!)?.name
+        MyChatManager.setmContext(this@ChatMessagesActivity)
+
+
+
+
+
+        chat_room_title.text = sMyGroups?.get(position!!)?.name
 
         chat_messages_recycler.layoutManager = LinearLayoutManager(this@ChatMessagesActivity) as RecyclerView.LayoutManager?
 
@@ -50,6 +53,11 @@ class ChatMessagesActivity : AppCompatActivity(), View.OnClickListener {
 
         MyChatManager.fetchGroupMembersDetails(object : NotifyMeInterface {
             override fun handleData(`object`: Any, requestCode: Int?) {
+                var lastMessage: MessageModel? = null
+                if (DataConstants.groupMessageMap?.get(groupId!!)?.size!! > 0) {
+                    DataConstants.groupMessageMap?.get(groupId!!)?.get(DataConstants.groupMessageMap?.size!!.minus(1))!!
+                    MyChatManager.updateUnReadCountLastSeenMessageTimestamp(groupId, lastMessage!!)
+                }
                 adapter = ChatMessagesRecyclerAdapter(groupId!!, this@ChatMessagesActivity)
                 chat_messages_recycler.adapter = adapter
                 progressDialog?.hide()
@@ -84,7 +92,7 @@ class ChatMessagesActivity : AppCompatActivity(), View.OnClickListener {
 
         var read_status_temp: HashMap<String, Boolean> = hashMapOf()
 
-        for (member in groupMembersMap?.get(groupId)!!) {
+        for (member in groupMembersMap?.get(groupId!!)!!) {
             if (member.uid == sCurrentUser?.uid) {
                 read_status_temp.put(member.uid!!, true)
             } else {
@@ -102,5 +110,14 @@ class ChatMessagesActivity : AppCompatActivity(), View.OnClickListener {
             }
 
         }, NetworkConstants.SEND_MESSAGE_REQUEST, groupId, messageModel)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        var lastMessage: MessageModel? = null
+        if (DataConstants.groupMessageMap?.get(groupId!!)?.size!! > 0) {
+            DataConstants.groupMessageMap?.get(groupId!!)?.get(DataConstants.groupMessageMap?.size!!.minus(1))!!
+            MyChatManager.updateUnReadCountLastSeenMessageTimestamp(groupId, lastMessage!!)
+        }
     }
 }

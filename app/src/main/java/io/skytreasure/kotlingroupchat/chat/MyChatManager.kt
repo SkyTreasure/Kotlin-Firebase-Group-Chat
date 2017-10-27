@@ -1,22 +1,17 @@
 package io.skytreasure.kotlingroupchat.chat
 
+import android.annotation.SuppressLint
 import android.content.Context
-import android.support.compat.BuildConfig
 import android.util.Log
-import com.google.android.gms.tasks.OnCompleteListener
-import com.google.android.gms.tasks.OnFailureListener
-import com.google.android.gms.tasks.Task
-import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.google.gson.Gson
 import io.skytreasure.kotlingroupchat.chat.model.GroupModel
 import io.skytreasure.kotlingroupchat.chat.model.MessageModel
 import io.skytreasure.kotlingroupchat.chat.model.UserModel
-import io.skytreasure.kotlingroupchat.common.constants.DataConstants
+import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.sGroupMap
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.groupMembersMap
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.groupMessageMap
-import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.myGroups
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.sCurrentUser
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.userMap
 import io.skytreasure.kotlingroupchat.common.constants.FirebaseConstants
@@ -26,6 +21,7 @@ import io.skytreasure.kotlingroupchat.common.util.SecurePrefs
 import io.skytreasure.kotlingroupchat.common.util.SharedPrefManager
 import java.util.*
 
+@SuppressLint("StaticFieldLeak")
 /**
  * Created by akash on 23/10/17.
  */
@@ -44,6 +40,9 @@ object MyChatManager {
     var mUserRef: DatabaseReference? = mFirebaseDatabaseReference?.child(FirebaseConstants.USERS)
     var mGroupRef: DatabaseReference? = mFirebaseDatabaseReference?.child(FirebaseConstants.GROUP)
     var mMessageRef: DatabaseReference? = mFirebaseDatabaseReference?.child(FirebaseConstants.MESSAGES)
+
+    var groupListener: ValueEventListener? = null
+
 
     fun setmContext(mContext: Context) {
         this.mContext = mContext
@@ -151,7 +150,7 @@ ref.updateChildren(updatedUserData, new Firebase.CompletionListener() {
                         Log.d(TAG, "postTransaction:onComplete:" + databaseError)
                         //callback?.handleData(true, requestType)
                         var userModel: UserModel? = dataSnapshot?.getValue<UserModel>(UserModel::class.java)
-                        fetchMyGroups(callback, requestType, userModel)
+                        fetchMyGroups(callback, requestType, userModel, true)
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
@@ -253,15 +252,14 @@ ref.updateChildren(updatedUserData, new Firebase.CompletionListener() {
     /**
      * This function gets all the groups in which user is present.
      */
-    fun fetchMyGroups(callback: NotifyMeInterface?, requestType: Int?, userModel: UserModel?) {
-        myGroups?.clear()
+    fun fetchMyGroups(callback: NotifyMeInterface?, requestType: Int?, userModel: UserModel?, isSingleEvent: Boolean) {
 
         var i: Int = userModel?.group?.size!!
         if (i == 0) {
             //No Groups
             callback?.handleData(true, requestType)
         }
-        val groupListener = object : ValueEventListener {
+        groupListener = object : ValueEventListener {
             override fun onCancelled(databaseError: DatabaseError) {
                 Log.e("", "")
             }
@@ -275,18 +273,24 @@ ref.updateChildren(updatedUserData, new Firebase.CompletionListener() {
                     }
                     groupMembersMap?.put(groupModel.groupId!!, memberList)
                     groupMessageMap?.put(groupModel.groupId!!, arrayListOf())
-                    myGroups?.add(groupModel)
+                    sGroupMap?.put(groupModel.groupId!!, groupModel)
                 }
                 i--
-                if (i == 0) {
+                if (i <= 0) {
                     callback?.handleData(true, requestType)
                 }
             }
         }
 
+
         for (group in userModel?.group!!) {
             if (group.value) {
-                mGroupRef?.child(group.key)?.addListenerForSingleValueEvent(groupListener)
+                if (isSingleEvent) {
+                    mGroupRef?.child(group.key)?.addListenerForSingleValueEvent(groupListener)
+                } else {
+                    mGroupRef?.child(group.key)?.addValueEventListener(groupListener)
+                }
+
             }
         }
 
@@ -338,7 +342,10 @@ ref.updateChildren(updatedUserData, new Firebase.CompletionListener() {
 
     fun fetchMessagesFromGroup(callback: NotifyMeInterface?, requestType: Int?, groupId: String?) {
         val listener = object : ChildEventListener {
-            override fun onCancelled(databaseError: DatabaseError) {}
+            override fun onCancelled(databaseError: DatabaseError) {
+                callback?.handleData(false, requestType)
+            }
+
             override fun onChildMoved(p0: DataSnapshot?, p1: String?) {}
             override fun onChildChanged(p0: DataSnapshot?, p1: String?) {}
             override fun onChildRemoved(p0: DataSnapshot?) {}
@@ -358,5 +365,31 @@ ref.updateChildren(updatedUserData, new Firebase.CompletionListener() {
         mMessageRef?.child(groupId)?.addChildEventListener(listener)
     }
 
+    /**
+     * Call this function when user opens any chat groups.
+     */
+    fun updateUnReadCountLastSeenMessageTimestamp(groupId: String?, lastMessageModel: MessageModel) {
+
+        /* mGroupRef?.child(groupId)?.child(FirebaseConstants.MEMBERS)?.
+                 child(sCurrentUser?.uid)?.child(FirebaseConstants.UNREAD_GROUP_COUNT)?.setValue(0)
+
+         mGroupRef?.child(groupId)?.child(FirebaseConstants.MEMBERS)?.
+                 child(sCurrentUser?.uid)?.child(FirebaseConstants.L_S_M_T)?.setValue(lastMessageModel.timestamp)*/
+
+        var groupMember: HashMap<String, Any?> = hashMapOf()
+        groupMember.put(FirebaseConstants.UNREAD_GROUP_COUNT, 0)
+        groupMember.put(FirebaseConstants.L_S_M_T, lastMessageModel.timestamp)
+
+
+        mGroupRef?.child(groupId)?.child(FirebaseConstants.MEMBERS)?.
+                child(sCurrentUser?.uid)?.updateChildren(groupMember);
+    }
+
+
+    fun removeGroupEventListener(groupId: String?) {
+        if (groupListener != null) {
+            mGroupRef?.child(groupId)?.removeEventListener(groupListener)
+        }
+    }
 
 }

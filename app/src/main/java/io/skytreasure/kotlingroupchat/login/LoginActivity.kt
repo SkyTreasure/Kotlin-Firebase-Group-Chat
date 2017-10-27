@@ -210,5 +210,10 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener, GoogleApiClient
 
     }
 
+    override fun onStop() {
+        super.onStop()
+
+    }
+
 
 }
