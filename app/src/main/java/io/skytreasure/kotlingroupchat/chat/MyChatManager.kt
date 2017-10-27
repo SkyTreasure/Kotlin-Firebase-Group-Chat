@@ -371,30 +371,30 @@ ref.updateChildren(updatedUserData, new Firebase.CompletionListener() {
     }
 
 
-    fun fetchMessagesFromGroup(callback: NotifyMeInterface?, requestType: Int?, groupId: String?) {
-        groupMessageMap?.get(groupId)?.clear()
-        val clistener = object : ChildEventListener {
-            override fun onCancelled(databaseError: DatabaseError) {
-                callback?.handleData(false, requestType)
-            }
+    fun fetchLastMessageFromGroup(callback: NotifyMeInterface?, requestType: Int?, groupId: String?) {
 
-            override fun onChildMoved(p0: DataSnapshot?, p1: String?) {}
-            override fun onChildChanged(p0: DataSnapshot?, p1: String?) {}
-            override fun onChildRemoved(p0: DataSnapshot?) {}
-            override fun onChildAdded(dataSnapshot: DataSnapshot, p1: String?) {
-                if (dataSnapshot.exists()) {
-                    //groupMessageMap?.get(groupId)?.clear()
-                    dataSnapshot.getValue<MessageModel>(MessageModel::class.java)?.let {
-                        groupMessageMap?.get(groupId)?.add(it)
-                    }
-                    callback?.handleData(true, requestType)
-                } else {
-                    callback?.handleData(false, requestType)
-                }
+        /* val clistener = object : ChildEventListener {
+             override fun onCancelled(databaseError: DatabaseError) {
+                 callback?.handleData(false, requestType)
+             }
+
+             override fun onChildMoved(p0: DataSnapshot?, p1: String?) {}
+             override fun onChildChanged(p0: DataSnapshot?, p1: String?) {}
+             override fun onChildRemoved(p0: DataSnapshot?) {}
+             override fun onChildAdded(dataSnapshot: DataSnapshot, p1: String?) {
+                 if (dataSnapshot.exists()) {
+                     //groupMessageMap?.get(groupId)?.clear()
+                     dataSnapshot.getValue<MessageModel>(MessageModel::class.java)?.let {
+                         groupMessageMap?.get(groupId)?.add(it)
+                     }
+                     callback?.handleData(true, requestType)
+                 } else {
+                     callback?.handleData(false, requestType)
+                 }
 
 
-            }
-        }
+             }
+         }*/
 
         val listener = object : ValueEventListener {
             override fun onCancelled(p0: DatabaseError?) {
@@ -403,22 +403,21 @@ ref.updateChildren(updatedUserData, new Firebase.CompletionListener() {
 
             override fun onDataChange(dataSnapshot: DataSnapshot?) {
                 if (dataSnapshot?.exists()!!) {
-                    groupMessageMap?.get(groupId)?.clear()
-                    dataSnapshot.children.iterator().forEach {
-                        groupMessageMap?.get(groupId)?.add(it.getValue<MessageModel>(MessageModel::class.java)!!)
-                    }
-                    /* dataSnapshot.children.forEach {
-                         groupMessageMap?.get(groupId)?.add(it.getValue<MessageModel>(MessageModel::class.java)!!)
-                     }*/
-                    callback?.handleData(true, requestType)
+
+                    var lastMessage: MessageModel = dataSnapshot.children.elementAt(0).getValue<MessageModel>(MessageModel::class.java)!!
+
+
+                    callback?.handleData(lastMessage, requestType)
                 } else {
-                    callback?.handleData(false, requestType)
+                    callback?.handleData(MessageModel(), requestType)
                 }
             }
 
         }
-        //mMessageRef?.child(groupId)?.addListenerForSingleValueEvent(listener)
-        mMessageRef?.child(groupId)?.addChildEventListener(clistener)
+        val lastQuery = mMessageRef?.child(groupId)?.orderByKey()?.limitToLast(1)
+
+        lastQuery?.addListenerForSingleValueEvent(listener)
+        // mMessageRef?.child(groupId)?.addChildEventListener(clistener)
     }
 
     /**

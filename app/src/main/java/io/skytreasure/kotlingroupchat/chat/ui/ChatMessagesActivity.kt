@@ -49,7 +49,7 @@ class ChatMessagesActivity : AppCompatActivity(), View.OnClickListener {
 
         mLinearLayoutManager = LinearLayoutManager(this)
         mLinearLayoutManager!!.setStackFromEnd(true)
-      //  chat_messages_recycler.layoutManager = mLinearLayoutManager
+        //  chat_messages_recycler.layoutManager = mLinearLayoutManager
 
         progressDialog?.show()
         btnSend.setOnClickListener(this)
@@ -59,7 +59,7 @@ class ChatMessagesActivity : AppCompatActivity(), View.OnClickListener {
         MyChatManager.fetchGroupMembersDetails(object : NotifyMeInterface {
             override fun handleData(`object`: Any, requestCode: Int?) {
                 readMessagesFromFirebase(groupId!!)
-
+                getLastMessageAndUpdateUnreadCount()
 
             }
 
@@ -68,17 +68,18 @@ class ChatMessagesActivity : AppCompatActivity(), View.OnClickListener {
 
     }
 
-    /* fun getMessages() {
-         MyChatManager.fetchMessagesFromGroup(object : NotifyMeInterface {
-             override fun handleData(`object`: Any, requestCode: Int?) {
-                 adapter = ChatMessagesRecyclerAdapter(groupId!!, this@ChatMessagesActivity)
-                 chat_messages_recycler.adapter = adapter
-                 progressDialog?.hide()
+    fun getLastMessageAndUpdateUnreadCount() {
+        MyChatManager.fetchLastMessageFromGroup(object : NotifyMeInterface {
+            override fun handleData(`object`: Any, requestCode: Int?) {
+                var lastMessage: MessageModel? = `object` as MessageModel
+                if (lastMessage != null) {
+                    MyChatManager.updateUnReadCountLastSeenMessageTimestamp(groupId, lastMessage!!)
+                }
 
-             }
+            }
 
-         }, NetworkConstants.FETCH_MESSAGES, groupId)
-     }*/
+        }, NetworkConstants.FETCH_MESSAGES, groupId)
+    }
 
     override fun onClick(v: View?) {
         when (v?.id) {
@@ -127,12 +128,7 @@ class ChatMessagesActivity : AppCompatActivity(), View.OnClickListener {
 
     override fun onStop() {
         super.onStop()
-        var lastMessage: MessageModel? = null
-        if (DataConstants.groupMessageMap?.get(groupId!!)?.size!! > 0) {
-            lastMessage = DataConstants.groupMessageMap?.get(groupId!!)?.get(DataConstants.groupMessageMap?.get(groupId!!)?.size!!.minus(1))!!
-
-            MyChatManager.updateUnReadCountLastSeenMessageTimestamp(groupId, lastMessage!!)
-        }
+        getLastMessageAndUpdateUnreadCount()
     }
 
 
