@@ -52,6 +52,7 @@ class ViewGroupsActivity : AppCompatActivity(), View.OnClickListener {
 
         }, sCurrentUser?.uid, NetworkConstants.FETCH_CURRENT_USER)
 
+        iv_back.setOnClickListener(this)
 
     }
 

@@ -20,6 +20,10 @@ import io.skytreasure.kotlingroupchat.common.controller.NotifyMeInterface
 import io.skytreasure.kotlingroupchat.common.util.SecurePrefs
 import io.skytreasure.kotlingroupchat.common.util.SharedPrefManager
 import java.util.*
+import com.google.firebase.database.Transaction
+import android.databinding.adapters.NumberPickerBindingAdapter.setValue
+import kotlin.collections.HashMap
+
 
 @SuppressLint("StaticFieldLeak")
 /**
@@ -311,6 +315,33 @@ ref.updateChildren(updatedUserData, new Firebase.CompletionListener() {
         callback?.handleData(true, requestType)
         //TODO: Send Notification here.
 
+        for (member in sGroupMap?.get(groupId)?.members!!) {
+            mGroupRef?.child(groupId)?.child(FirebaseConstants.MEMBERS)?.child(member.value.uid)?.
+                    runTransaction(object : Transaction.Handler {
+                        override fun onComplete(p0: DatabaseError?, p1: Boolean, p2: DataSnapshot?) {
+                            if (p0 != null) {
+                                Log.d("INC", "Firebase counter increment failed.");
+                            } else {
+                                Log.d("INC", "Firebase counter increment succeeded.");
+                            }
+                        }
+
+                        override fun doTransaction(mutabledata: MutableData?): Transaction.Result {
+                            if (mutabledata?.getValue<UserModel>(UserModel::class.java)?.unread_group_count == null) {
+                                var p = mutabledata?.getValue<UserModel>(UserModel::class.java)
+                                p?.unread_group_count = 0
+                                mutabledata?.setValue(p)
+                            } else {
+                                var p = mutabledata.getValue<UserModel>(UserModel::class.java)
+                                p?.unread_group_count = p?.unread_group_count as Int + 1
+                                mutabledata.setValue(p)
+                            }
+
+                            return Transaction.success(mutabledata)
+                        }
+                    })
+        }
+
     }
 
 
@@ -328,7 +359,7 @@ ref.updateChildren(updatedUserData, new Firebase.CompletionListener() {
                         userMap?.put(userModel.uid!!, userModel)
                         i--
                         if (i == 0) {
-                            fetchMessagesFromGroup(callback, requestType, groupId)
+                            callback?.handleData(true, requestType)
                         }
                     }
                 }
@@ -341,7 +372,8 @@ ref.updateChildren(updatedUserData, new Firebase.CompletionListener() {
 
 
     fun fetchMessagesFromGroup(callback: NotifyMeInterface?, requestType: Int?, groupId: String?) {
-        val listener = object : ChildEventListener {
+        groupMessageMap?.get(groupId)?.clear()
+        val clistener = object : ChildEventListener {
             override fun onCancelled(databaseError: DatabaseError) {
                 callback?.handleData(false, requestType)
             }
@@ -351,6 +383,7 @@ ref.updateChildren(updatedUserData, new Firebase.CompletionListener() {
             override fun onChildRemoved(p0: DataSnapshot?) {}
             override fun onChildAdded(dataSnapshot: DataSnapshot, p1: String?) {
                 if (dataSnapshot.exists()) {
+                    //groupMessageMap?.get(groupId)?.clear()
                     dataSnapshot.getValue<MessageModel>(MessageModel::class.java)?.let {
                         groupMessageMap?.get(groupId)?.add(it)
                     }
@@ -362,7 +395,30 @@ ref.updateChildren(updatedUserData, new Firebase.CompletionListener() {
 
             }
         }
-        mMessageRef?.child(groupId)?.addChildEventListener(listener)
+
+        val listener = object : ValueEventListener {
+            override fun onCancelled(p0: DatabaseError?) {
+
+            }
+
+            override fun onDataChange(dataSnapshot: DataSnapshot?) {
+                if (dataSnapshot?.exists()!!) {
+                    groupMessageMap?.get(groupId)?.clear()
+                    dataSnapshot.children.iterator().forEach {
+                        groupMessageMap?.get(groupId)?.add(it.getValue<MessageModel>(MessageModel::class.java)!!)
+                    }
+                    /* dataSnapshot.children.forEach {
+                         groupMessageMap?.get(groupId)?.add(it.getValue<MessageModel>(MessageModel::class.java)!!)
+                     }*/
+                    callback?.handleData(true, requestType)
+                } else {
+                    callback?.handleData(false, requestType)
+                }
+            }
+
+        }
+        //mMessageRef?.child(groupId)?.addListenerForSingleValueEvent(listener)
+        mMessageRef?.child(groupId)?.addChildEventListener(clistener)
     }
 
     /**
@@ -383,6 +439,8 @@ ref.updateChildren(updatedUserData, new Firebase.CompletionListener() {
 
         mGroupRef?.child(groupId)?.child(FirebaseConstants.MEMBERS)?.
                 child(sCurrentUser?.uid)?.updateChildren(groupMember);
+        lastMessageModel.read_status = hashMapOf()
+        mGroupRef?.child(groupId)?.child(FirebaseConstants.LAST_MESSAGE)?.setValue(lastMessageModel)
     }
 
 

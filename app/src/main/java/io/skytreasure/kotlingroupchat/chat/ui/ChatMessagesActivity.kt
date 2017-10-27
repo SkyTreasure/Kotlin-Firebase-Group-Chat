@@ -6,6 +6,8 @@ import android.os.Bundle
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.View
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
 
 import io.skytreasure.kotlingroupchat.R
 import io.skytreasure.kotlingroupchat.chat.MyChatManager
@@ -16,6 +18,7 @@ import io.skytreasure.kotlingroupchat.common.constants.DataConstants
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.groupMembersMap
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.sMyGroups
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.sCurrentUser
+import io.skytreasure.kotlingroupchat.common.constants.FirebaseConstants
 import io.skytreasure.kotlingroupchat.common.constants.NetworkConstants
 import io.skytreasure.kotlingroupchat.common.controller.NotifyMeInterface
 import kotlinx.android.synthetic.main.activity_chat_messages.*
@@ -28,6 +31,8 @@ class ChatMessagesActivity : AppCompatActivity(), View.OnClickListener {
     var groupId: String? = ""
     var position: Int? = 0
     var progressDialog: ProgressDialog? = null
+    var mFirebaseDatabaseReference: DatabaseReference? = null
+    var mLinearLayoutManager: LinearLayoutManager? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,12 +44,12 @@ class ChatMessagesActivity : AppCompatActivity(), View.OnClickListener {
         MyChatManager.setmContext(this@ChatMessagesActivity)
 
 
-
-
-
         chat_room_title.text = sMyGroups?.get(position!!)?.name
 
-        chat_messages_recycler.layoutManager = LinearLayoutManager(this@ChatMessagesActivity) as RecyclerView.LayoutManager?
+
+        mLinearLayoutManager = LinearLayoutManager(this)
+        mLinearLayoutManager!!.setStackFromEnd(true)
+      //  chat_messages_recycler.layoutManager = mLinearLayoutManager
 
         progressDialog?.show()
         btnSend.setOnClickListener(this)
@@ -53,19 +58,27 @@ class ChatMessagesActivity : AppCompatActivity(), View.OnClickListener {
 
         MyChatManager.fetchGroupMembersDetails(object : NotifyMeInterface {
             override fun handleData(`object`: Any, requestCode: Int?) {
-                var lastMessage: MessageModel? = null
-                if (DataConstants.groupMessageMap?.get(groupId!!)?.size!! > 0) {
-                    DataConstants.groupMessageMap?.get(groupId!!)?.get(DataConstants.groupMessageMap?.size!!.minus(1))!!
-                    MyChatManager.updateUnReadCountLastSeenMessageTimestamp(groupId, lastMessage!!)
-                }
-                adapter = ChatMessagesRecyclerAdapter(groupId!!, this@ChatMessagesActivity)
-                chat_messages_recycler.adapter = adapter
-                progressDialog?.hide()
+                readMessagesFromFirebase(groupId!!)
+
+
             }
 
         }, NetworkConstants.FETCH_GROUP_MEMBERS_DETAILS, groupId)
 
+
     }
+
+    /* fun getMessages() {
+         MyChatManager.fetchMessagesFromGroup(object : NotifyMeInterface {
+             override fun handleData(`object`: Any, requestCode: Int?) {
+                 adapter = ChatMessagesRecyclerAdapter(groupId!!, this@ChatMessagesActivity)
+                 chat_messages_recycler.adapter = adapter
+                 progressDialog?.hide()
+
+             }
+
+         }, NetworkConstants.FETCH_MESSAGES, groupId)
+     }*/
 
     override fun onClick(v: View?) {
         when (v?.id) {
@@ -106,7 +119,7 @@ class ChatMessagesActivity : AppCompatActivity(), View.OnClickListener {
         MyChatManager.sendMessageToAGroup(object : NotifyMeInterface {
 
             override fun handleData(`object`: Any, requestCode: Int?) {
-
+                et_chat.setText("")
             }
 
         }, NetworkConstants.SEND_MESSAGE_REQUEST, groupId, messageModel)
@@ -116,8 +129,28 @@ class ChatMessagesActivity : AppCompatActivity(), View.OnClickListener {
         super.onStop()
         var lastMessage: MessageModel? = null
         if (DataConstants.groupMessageMap?.get(groupId!!)?.size!! > 0) {
-            DataConstants.groupMessageMap?.get(groupId!!)?.get(DataConstants.groupMessageMap?.size!!.minus(1))!!
+            lastMessage = DataConstants.groupMessageMap?.get(groupId!!)?.get(DataConstants.groupMessageMap?.get(groupId!!)?.size!!.minus(1))!!
+
             MyChatManager.updateUnReadCountLastSeenMessageTimestamp(groupId, lastMessage!!)
         }
+    }
+
+
+    private fun readMessagesFromFirebase(groupId: String) {
+        mFirebaseDatabaseReference = FirebaseDatabase.getInstance().reference
+        val firebaseAdapter = ChatMessagesRecyclerAdapter(groupId, this@ChatMessagesActivity, mFirebaseDatabaseReference?.child(FirebaseConstants.MESSAGES)?.child(groupId)!!)
+
+        firebaseAdapter.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
+            override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
+                super.onItemRangeInserted(positionStart, itemCount)
+                val friendlyMessageCount = firebaseAdapter.getItemCount()
+                val lastVisiblePosition = mLinearLayoutManager?.findLastCompletelyVisibleItemPosition()
+                if (lastVisiblePosition == -1 || positionStart >= friendlyMessageCount - 1 && lastVisiblePosition == positionStart - 1) {
+                    chat_messages_recycler.scrollToPosition(positionStart)
+                }
+            }
+        })
+        chat_messages_recycler.setLayoutManager(mLinearLayoutManager)
+        chat_messages_recycler.setAdapter(firebaseAdapter)
     }
 }

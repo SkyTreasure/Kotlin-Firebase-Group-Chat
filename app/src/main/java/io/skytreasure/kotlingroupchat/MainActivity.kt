@@ -9,6 +9,7 @@ import android.widget.Toast
 import io.skytreasure.kotlingroupchat.chat.MyChatManager
 import io.skytreasure.kotlingroupchat.chat.ui.CreateGroupActivity
 import io.skytreasure.kotlingroupchat.chat.ui.ViewGroupsActivity
+import io.skytreasure.kotlingroupchat.common.constants.DataConstants
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.sCurrentUser
 import io.skytreasure.kotlingroupchat.common.constants.NetworkConstants
 import io.skytreasure.kotlingroupchat.common.controller.NotifyMeInterface
@@ -24,8 +25,18 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
         btn_creategroup.setOnClickListener(this)
         btn_showgroup.setOnClickListener(this)
-    }
 
+        MyChatManager.fetchMyGroups(object : NotifyMeInterface {
+            override fun handleData(`object`: Any, requestCode: Int?) {
+                var i = 0
+                for (group in DataConstants.sGroupMap!!) {
+                    i += group.value.members.get(sCurrentUser?.uid)?.unread_group_count!!
+                }
+                tv_notification_count.text = "Total Notification Count :" + i
+            }
+
+        }, NetworkConstants.FETCH_GROUPS, sCurrentUser, false)
+    }
 
     override fun onClick(v: View?) {
         when (v?.id) {

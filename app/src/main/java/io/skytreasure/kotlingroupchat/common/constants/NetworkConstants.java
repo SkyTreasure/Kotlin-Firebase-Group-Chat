@@ -16,4 +16,5 @@ public class NetworkConstants {
     public static final int GO_OFFLINE=1009;
     public static final int FETCH_GROUPS=1010;
     public static final int FETCH_CURRENT_USER=1011;
+    public static final int FETCH_MESSAGES=1012;
 }

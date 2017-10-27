@@ -6,6 +6,13 @@
     android:layout_height="match_parent"
     tools:context="io.skytreasure.kotlingroupchat.MainActivity">
 
+    <TextView
+        android:text="Total Notification Count : 1"
+        android:layout_width="wrap_content"
+        android:layout_margin="@dimen/dp_16"
+        android:id="@+id/tv_notification_count"
+        android:layout_height="wrap_content" />
+
     <Button
         android:id="@+id/btn_creategroup"
         android:layout_width="match_parent"

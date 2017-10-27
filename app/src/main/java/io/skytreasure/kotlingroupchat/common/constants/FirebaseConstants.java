@@ -15,4 +15,5 @@ public class FirebaseConstants {
      * last_seen_message_timestamp
      */
     public static final String L_S_M_T = "last_seen_message_timestamp";
+    public static final String LAST_MESSAGE="lastMessage";
 }
