@@ -32,7 +32,10 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             override fun handleData(`object`: Any, requestCode: Int?) {
                 var i = 0
                 for (group in DataConstants.sGroupMap!!) {
-                    i += group.value.members.get(sCurrentUser?.uid)?.unread_group_count!!
+                    if (group.value.members.containsKey(sCurrentUser?.uid!!)) {
+                        i += group.value.members.get(sCurrentUser?.uid)?.unread_group_count!!
+                    }
+
                 }
                 tv_notification_count.text = "Total Notification Count :" + i
             }

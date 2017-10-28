@@ -69,11 +69,23 @@
         android:layout_toEndOf="@+id/iv_profile"
         android:text="Please provide a group name and optional group icon" />
 
+
+    <TextView
+        android:id="@+id/tv_exit_group"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/label_hint"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="@dimen/dp_16"
+        android:text="EXIT GROUP"
+        android:textColor="@color/red"
+        android:textStyle="bold" />
+
     <View
         android:id="@+id/view_1"
         android:layout_width="match_parent"
         android:layout_height="@dimen/dp_1"
-        android:layout_below="@+id/label_hint"
+        android:layout_below="@+id/tv_exit_group"
         android:layout_marginTop="@dimen/dp_24"
         android:background="@color/greyish" />
 

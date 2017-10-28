@@ -501,7 +501,7 @@ ref.updateChildren(updatedUserData, new Firebase.CompletionListener() {
         mGroupRef?.child(groupId)?.child(FirebaseConstants.MEMBERS)?.child(userModel?.uid)?.setValue(userModel)
 
         mUserRef?.child(userModel?.uid)?.child(FirebaseConstants.GROUP)?.child(groupId)?.setValue(true)
-
+        callback?.handleData(true,1)
     }
 
 }

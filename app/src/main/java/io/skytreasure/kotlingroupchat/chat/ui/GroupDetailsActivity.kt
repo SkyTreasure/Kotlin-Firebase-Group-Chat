@@ -40,11 +40,13 @@ import io.skytreasure.kotlingroupchat.chat.model.UserModel
 import io.skytreasure.kotlingroupchat.chat.ui.adapter.ParticipantsAdapter
 import io.skytreasure.kotlingroupchat.common.constants.AppConstants
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants
+import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.sMyGroups
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.selectedUserList
 import io.skytreasure.kotlingroupchat.common.constants.FirebaseConstants
 import io.skytreasure.kotlingroupchat.common.constants.NetworkConstants
 import io.skytreasure.kotlingroupchat.common.controller.NotifyMeInterface
 import io.skytreasure.kotlingroupchat.common.util.SharedPrefManager
+import io.skytreasure.kotlingroupchat.common.util.loadRoundImage
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
@@ -90,6 +92,7 @@ class GroupDetailsActivity : AppCompatActivity(), View.OnClickListener {
                 selectedUserList?.add(DataConstants.userMap?.get(member.value.uid)!!)
             }
 
+            loadRoundImage(iv_profile, DataConstants.sGroupMap?.get(groupId!!)?.image_url!!)
 
             adapter = ParticipantsAdapter(object : NotifyMeInterface {
                 override fun handleData(`object`: Any, requestCode: Int?) {
@@ -98,6 +101,9 @@ class GroupDetailsActivity : AppCompatActivity(), View.OnClickListener {
 
             }, AppConstants.DETAILS, groupId!!)
             rv_main.adapter = adapter
+            tv_exit_group.visibility = View.VISIBLE
+            tv_exit_group.setOnClickListener(this@GroupDetailsActivity)
+
         } else {
             // Group Creation Page
             btn_creategroup.text = "Create Group"
@@ -108,12 +114,15 @@ class GroupDetailsActivity : AppCompatActivity(), View.OnClickListener {
 
             }, AppConstants.CREATION, groupId!!)
             rv_main.adapter = adapter
+            tv_exit_group.visibility = View.GONE
         }
 
         iv_profile.setOnClickListener(this@GroupDetailsActivity)
         iv_back.setOnClickListener(this@GroupDetailsActivity)
         btn_creategroup.setOnClickListener(this@GroupDetailsActivity)
         tv_no_of_participants.setText("" + selectedUserList?.size!! + " Participants")
+        label_hint.setOnClickListener(this@GroupDetailsActivity)
+        label_hint.setText("Add akash.nidhi@interactionone.com to the group")
     }
 
 
@@ -251,6 +260,44 @@ class GroupDetailsActivity : AppCompatActivity(), View.OnClickListener {
 
             R.id.iv_back -> {
                 finish()
+            }
+
+            R.id.label_hint -> {
+                if (!DataConstants.sGroupMap?.get(groupId!!)?.members?.containsKey("9f19bxizDuYx95PfkBe3N7uamu92")!!) {
+                    MyChatManager.addMemberToAGroup(object : NotifyMeInterface {
+                        override fun handleData(`object`: Any, requestCode: Int?) {
+                            selectedUserList?.add(DataConstants.userMap?.get("9f19bxizDuYx95PfkBe3N7uamu92")!!)
+                            /*     adapter = ParticipantsAdapter(object : NotifyMeInterface {
+                                     override fun handleData(`object`: Any, requestCode: Int?) {
+                                         tv_no_of_participants.setText("" + selectedUserList?.size!! + " Participants")
+                                     }
+
+                                 }, AppConstants.CREATION, groupId!!)*/
+                            adapter?.notifyDataSetChanged()
+                        }
+
+                    }, groupId, DataConstants.userMap?.get("9f19bxizDuYx95PfkBe3N7uamu92"))
+                } else {
+                    Toast.makeText(this@GroupDetailsActivity, "Akash is already in the group", Toast.LENGTH_LONG).show()
+                }
+            }
+
+
+            R.id.tv_exit_group -> {
+                MyChatManager.setmContext(this@GroupDetailsActivity)
+                MyChatManager.removeMemberFromGroup(object : NotifyMeInterface {
+                    override fun handleData(`object`: Any, requestCode: Int?) {
+
+                        DataConstants.sGroupMap?.get(groupId)?.members?.remove(DataConstants.sCurrentUser?.uid)
+
+                        Toast.makeText(this@GroupDetailsActivity, "You have been exited from group", Toast.LENGTH_LONG).show()
+                        val intent = Intent(this@GroupDetailsActivity, ViewGroupsActivity::class.java)
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        startActivity(intent)
+                        finish()
+                    }
+
+                }, groupId, DataConstants.sCurrentUser?.uid)
             }
         }
     }
