@@ -84,16 +84,19 @@ class GroupDetailsActivity : AppCompatActivity(), View.OnClickListener {
             et_groupname.setText(DataConstants.sGroupMap?.get(groupId!!)?.name!!.toString())
 
             DataConstants.sGroupMap?.get(groupId!!)?.members?.forEach { member ->
-                selectedUserList?.add(member.value)
-                selectedUserList?.add(DataConstants.sCurrentUser!!)
+                DataConstants.userMap?.get(member.value.uid)!!.admin = member.value.admin
+                DataConstants.userMap?.get(member.value.uid)!!.delete_till = member.value.delete_till
+                DataConstants.userMap?.get(member.value.uid)!!.unread_group_count = member.value.unread_group_count
+                selectedUserList?.add(DataConstants.userMap?.get(member.value.uid)!!)
             }
+
 
             adapter = ParticipantsAdapter(object : NotifyMeInterface {
                 override fun handleData(`object`: Any, requestCode: Int?) {
                     tv_no_of_participants.setText("" + selectedUserList?.size!! + " Participants")
                 }
 
-            })
+            }, AppConstants.DETAILS, groupId!!)
             rv_main.adapter = adapter
         } else {
             // Group Creation Page
@@ -103,7 +106,7 @@ class GroupDetailsActivity : AppCompatActivity(), View.OnClickListener {
                     tv_no_of_participants.setText("" + selectedUserList?.size!! + " Participants")
                 }
 
-            })
+            }, AppConstants.CREATION, groupId!!)
             rv_main.adapter = adapter
         }
 
@@ -332,7 +335,7 @@ class GroupDetailsActivity : AppCompatActivity(), View.OnClickListener {
 
     fun sendFileFirebase(storageReference: StorageReference?, file: Uri, groupId: String) {
         if (storageReference != null) {
-            var mFirebaseDatabaseReference: DatabaseReference? = FirebaseDatabase.getInstance().reference.child(FirebaseConstants.GROUP).child(groupId)
+
             val name = DateFormat.format("yyyy-MM-dd_hhmmss", Date()).toString()
             val imageGalleryRef = storageReference.child(name + "_gallery")
             val uploadTask = imageGalleryRef.putFile(file)
@@ -342,7 +345,8 @@ class GroupDetailsActivity : AppCompatActivity(), View.OnClickListener {
                 val fileModel = FileModel("img", downloadUrl!!.toString(), name, "")
 
                 // val chatModel = MessageModel(tfUserModel.getUserId(), ffUserModel.getUserId(), ffUserModel, Calendar.getInstance().time.time.toString() + "", fileModel)
-                mFirebaseDatabaseReference?.child(FirebaseConstants.IMAGE_URL)?.setValue(downloadUrl)
+                FirebaseDatabase.getInstance().reference.child(FirebaseConstants.GROUP).
+                        child(groupId).child(FirebaseConstants.IMAGE_URL)?.setValue(downloadUrl.toString())
                 Toast.makeText(this@GroupDetailsActivity, "Group Image Updated successful", Toast.LENGTH_LONG).show()
             }
         } else {

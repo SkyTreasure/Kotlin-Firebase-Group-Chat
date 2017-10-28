@@ -8,7 +8,9 @@ import android.view.ViewGroup
 import android.widget.RelativeLayout
 import android.widget.TextView
 import io.skytreasure.kotlingroupchat.R
+import io.skytreasure.kotlingroupchat.chat.MyChatManager
 import io.skytreasure.kotlingroupchat.chat.ui.ViewHolders.UserRowViewHolder
+import io.skytreasure.kotlingroupchat.common.constants.AppConstants
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants
 import io.skytreasure.kotlingroupchat.common.constants.NetworkConstants
 import io.skytreasure.kotlingroupchat.common.controller.NotifyMeInterface
@@ -17,7 +19,7 @@ import io.skytreasure.kotlingroupchat.common.util.loadRoundImage
 /**
  * Created by akash on 24/10/17.
  */
-class ParticipantsAdapter(var callback: NotifyMeInterface) : RecyclerView.Adapter<UserRowViewHolder>() {
+class ParticipantsAdapter(var callback: NotifyMeInterface, var type: String, var groupId: String) : RecyclerView.Adapter<UserRowViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): UserRowViewHolder =
             UserRowViewHolder(LayoutInflater.from(parent?.context).inflate(R.layout.item_user, parent, false))
@@ -25,45 +27,94 @@ class ParticipantsAdapter(var callback: NotifyMeInterface) : RecyclerView.Adapte
     override fun onBindViewHolder(holder: UserRowViewHolder, position: Int) {
         val user = DataConstants.selectedUserList?.get(position)
 
-      try{
-          holder.tvName.text = user?.name
-          holder.tvEmail.text = user?.email
+        try {
+            holder.tvName.text = user?.name
+            holder.tvEmail.text = user?.email
 
-          loadRoundImage(holder.ivProfile, user?.image_url!!)
-          holder.ivOverflow.visibility = View.VISIBLE
+            loadRoundImage(holder.ivProfile, user?.image_url!!)
 
-          if (user.admin != null && user.admin!!) {
-              holder.labelAdmin.visibility = View.VISIBLE
-          } else {
-              holder.labelAdmin.visibility = View.GONE
-              user.admin = false
-          }
+            //Only admin get to see overflow menu of group members
+            if (DataConstants.sGroupMap?.get(groupId)?.members?.get(DataConstants.sCurrentUser?.uid)?.admin!!) {
+                holder.ivOverflow.visibility = View.VISIBLE
+            } else {
+                holder.ivOverflow.visibility = View.INVISIBLE
+            }
 
-          holder.ivOverflow.setOnClickListener({
-              holder.llOverflowItems.visibility = View.VISIBLE
-          })
 
-          holder.tvMakeAdmin.setOnClickListener({
-              holder.llOverflowItems.visibility = View.GONE
-              if (holder.tvMakeAdmin.text.equals("Make Admin")) {
-                  user.admin = true
-                  holder.tvMakeAdmin.text = "Remove Admin"
-                  holder.labelAdmin.visibility = View.VISIBLE
-              } else {
-                  user.admin = false
-                  holder.labelAdmin.visibility = View.GONE
-              }
-          })
 
-          holder.tvRemoveMember.setOnClickListener({
-              holder.llOverflowItems.visibility = View.GONE
-              DataConstants.selectedUserList?.remove(user)
-              notifyDataSetChanged()
-              callback.handleData(true, 1);
-          })
-      }catch (e : Exception){
-          e.printStackTrace()
-      }
+            if (user.admin != null && user.admin!!) {
+                holder.labelAdmin.visibility = View.VISIBLE
+                holder.tvMakeAdmin.text = "Remove Admin"
+
+            } else {
+                holder.labelAdmin.visibility = View.GONE
+                holder.tvMakeAdmin.text = "Make Admin"
+                user.admin = false
+            }
+
+            holder.ivOverflow.setOnClickListener({
+                holder.llOverflowItems.visibility = View.VISIBLE
+            })
+
+            holder.tvMakeAdmin.setOnClickListener({
+                when (type) {
+                    AppConstants.CREATION -> {
+                        holder.llOverflowItems.visibility = View.GONE
+                        if (holder.tvMakeAdmin.text.equals("Make Admin")) {
+                            user.admin = true
+                            holder.tvMakeAdmin.text = "Remove Admin"
+                            holder.labelAdmin.visibility = View.VISIBLE
+                        } else {
+                            user.admin = false
+                            holder.tvMakeAdmin.text = "Make Admin"
+                            holder.labelAdmin.visibility = View.GONE
+                        }
+                    }
+
+                    AppConstants.DETAILS -> {
+                        holder.llOverflowItems.visibility = View.GONE
+                        if (holder.tvMakeAdmin.text.equals("Make Admin")) {
+                            user.admin = true
+                            holder.tvMakeAdmin.text = "Remove Admin"
+                            holder.labelAdmin.visibility = View.VISIBLE
+                        } else {
+                            user.admin = false
+                            holder.tvMakeAdmin.text = "Make Admin"
+                            holder.labelAdmin.visibility = View.GONE
+
+                        }
+                        MyChatManager.changeAdminStatusOfUser(null, groupId, user.uid, user.admin!!)
+                    }
+                }
+
+            })
+
+            holder.tvRemoveMember.setOnClickListener({
+                when (type) {
+                    AppConstants.CREATION -> {
+                        holder.llOverflowItems.visibility = View.GONE
+                        DataConstants.selectedUserList?.remove(user)
+                        notifyDataSetChanged()
+                        callback.handleData(true, 1);
+                    }
+
+                    AppConstants.DETAILS -> {
+                        holder.llOverflowItems.visibility = View.GONE
+                        DataConstants.selectedUserList?.remove(user)
+                        MyChatManager.removeMemberFromGroup(null, groupId, user.uid)
+                    }
+                }
+
+
+            })
+
+
+            holder.layout.setOnClickListener({
+                holder.llOverflowItems.visibility = View.GONE
+            })
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
 
     }
 

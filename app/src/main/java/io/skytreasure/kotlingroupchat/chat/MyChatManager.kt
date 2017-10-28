@@ -22,6 +22,8 @@ import io.skytreasure.kotlingroupchat.common.util.SharedPrefManager
 import java.util.*
 import com.google.firebase.database.Transaction
 import android.databinding.adapters.NumberPickerBindingAdapter.setValue
+import io.skytreasure.kotlingroupchat.common.constants.DataConstants
+import io.skytreasure.kotlingroupchat.common.constants.NetworkConstants
 import kotlin.collections.HashMap
 
 
@@ -172,8 +174,8 @@ ref.updateChildren(updatedUserData, new Firebase.CompletionListener() {
      * Function to fetch current user
      */
     fun fetchCurrentUser(callback: NotifyMeInterface?, uid: String?, requestType: Int?) {
-        try{
-            if (mUserRef != null && uid!=null) {
+        try {
+            if (mUserRef != null && uid != null) {
                 mUserRef?.child(uid)?.addValueEventListener(object : ValueEventListener {
                     override fun onCancelled(p0: DatabaseError?) {
                         callback?.handleData(false, requestType)
@@ -188,7 +190,7 @@ ref.updateChildren(updatedUserData, new Firebase.CompletionListener() {
 
                 })
             }
-        }catch (e : Exception){
+        } catch (e: Exception) {
             e.printStackTrace()
         }
 
@@ -297,9 +299,11 @@ ref.updateChildren(updatedUserData, new Firebase.CompletionListener() {
         for (group in userModel?.group!!) {
             if (group.value) {
                 if (isSingleEvent) {
-                    mGroupRef?.child(group.key)?.addListenerForSingleValueEvent(groupListener)
+                    if (group.value)
+                        mGroupRef?.child(group.key)?.addListenerForSingleValueEvent(groupListener)
                 } else {
-                    mGroupRef?.child(group.key)?.addValueEventListener(groupListener)
+                    if (group.value)
+                        mGroupRef?.child(group.key)?.addValueEventListener(groupListener)
                 }
 
             }
@@ -450,10 +454,51 @@ ref.updateChildren(updatedUserData, new Firebase.CompletionListener() {
     }
 
 
-    fun removeGroupEventListener(groupId: String?) {
-        if (groupListener != null) {
-            mGroupRef?.child(groupId)?.removeEventListener(groupListener)
-        }
+    fun fetchAllUserInformation() {
+        mUserRef?.addValueEventListener(object : ValueEventListener {
+            override fun onCancelled(p0: DatabaseError?) {
+
+            }
+
+            override fun onDataChange(p0: DataSnapshot?) {
+                if (p0?.exists()!!) {
+                    p0.children.forEach { user ->
+                        DataConstants.userMap?.put(user.key/*getValue<UserModel>(UserModel::class.java)?.uid!!*/, user.getValue<UserModel>(UserModel::class.java)!!)
+                    }
+                }
+            }
+
+        })
+    }
+
+    fun changeAdminStatusOfUser(callback: NotifyMeInterface?, groupId: String?, userId: String?, isAdmin: Boolean) {
+        mGroupRef?.child(groupId)?.child(FirebaseConstants.MEMBERS)?.child(userId)?.child(FirebaseConstants.ADMIN)?.setValue(isAdmin)
+        callback?.handleData(true, NetworkConstants.CHANGE_ADMIN_STATUS)
+    }
+
+    fun removeMemberFromGroup(callback: NotifyMeInterface?, groupId: String?, userId: String?) {
+        mGroupRef?.child(groupId)?.child(FirebaseConstants.MEMBERS)?.child(userId)?.removeValue()
+        mUserRef?.child(userId)?.child(FirebaseConstants.GROUP)?.child(groupId)?.setValue(false)
+    }
+
+    fun addMemberToAGroup(callback: NotifyMeInterface?, groupId: String?, userModel: UserModel?) {
+        //mUserRef?.child(userModel?.uid)?.child(FirebaseConstants.GROUP)?.child(groupId)?.setValue(true)
+
+        var time = Calendar.getInstance().timeInMillis
+
+        userModel?.group = hashMapOf()
+        userModel?.email = null
+        userModel?.image_url = null
+        userModel?.name = null
+        userModel?.online = null
+        userModel?.unread_group_count = 0
+        userModel?.last_seen_message_timestamp = time.toString()
+        userModel?.delete_till = time.toString()
+
+        mGroupRef?.child(groupId)?.child(FirebaseConstants.MEMBERS)?.child(userModel?.uid)?.setValue(userModel)
+
+        mUserRef?.child(userModel?.uid)?.child(FirebaseConstants.GROUP)?.child(groupId)?.setValue(true)
+
     }
 
 }

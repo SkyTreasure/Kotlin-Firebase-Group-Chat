@@ -26,6 +26,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         btn_creategroup.setOnClickListener(this)
         btn_showgroup.setOnClickListener(this)
 
+        MyChatManager.fetchAllUserInformation()
+
         MyChatManager.fetchMyGroups(object : NotifyMeInterface {
             override fun handleData(`object`: Any, requestCode: Int?) {
                 var i = 0
