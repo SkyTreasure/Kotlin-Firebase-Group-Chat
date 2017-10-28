@@ -101,7 +101,14 @@ class ParticipantsAdapter(var callback: NotifyMeInterface, var type: String, var
                     AppConstants.DETAILS -> {
                         holder.llOverflowItems.visibility = View.GONE
                         DataConstants.selectedUserList?.remove(user)
-                        MyChatManager.removeMemberFromGroup(null, groupId, user.uid)
+                        MyChatManager.removeMemberFromGroup(object : NotifyMeInterface {
+                            override fun handleData(`object`: Any, requestCode: Int?) {
+                                if (`object` as Boolean) {
+                                    notifyDataSetChanged()
+                                }
+                            }
+
+                        }, groupId, user.uid)
                     }
                 }
 

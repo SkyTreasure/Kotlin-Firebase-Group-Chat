@@ -299,14 +299,16 @@ ref.updateChildren(updatedUserData, new Firebase.CompletionListener() {
         for (group in userModel?.group!!) {
             if (group.value) {
                 if (isSingleEvent) {
-                    if (group.value)
-                        mGroupRef?.child(group.key)?.addListenerForSingleValueEvent(groupListener)
+                    mGroupRef?.child(group.key)?.addListenerForSingleValueEvent(groupListener)
                 } else {
-                    if (group.value)
-                        mGroupRef?.child(group.key)?.addValueEventListener(groupListener)
+                    mGroupRef?.child(group.key)?.addValueEventListener(groupListener)
                 }
-
+            } else {
+                i--
             }
+        }
+        if (i <= 0) {
+            callback?.handleData(true, requestType)
         }
 
     }
@@ -479,6 +481,7 @@ ref.updateChildren(updatedUserData, new Firebase.CompletionListener() {
     fun removeMemberFromGroup(callback: NotifyMeInterface?, groupId: String?, userId: String?) {
         mGroupRef?.child(groupId)?.child(FirebaseConstants.MEMBERS)?.child(userId)?.removeValue()
         mUserRef?.child(userId)?.child(FirebaseConstants.GROUP)?.child(groupId)?.setValue(false)
+        callback?.handleData(true, 1)
     }
 
     fun addMemberToAGroup(callback: NotifyMeInterface?, groupId: String?, userModel: UserModel?) {
