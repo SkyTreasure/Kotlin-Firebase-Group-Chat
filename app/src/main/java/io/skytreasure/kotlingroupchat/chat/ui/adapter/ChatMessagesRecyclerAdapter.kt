@@ -57,7 +57,7 @@ class ChatMessagesRecyclerAdapter(var groupId: String, var context: Context, var
     }
 
     var currentUser: UserModel = SharedPrefManager.getInstance(context).savedUserModel!!
-    var messageList: ArrayList<MessageModel> = groupMessageMap?.get(groupId)!!
+
 
 
     /* override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): ChatMessagesRecyclerAdapter.ViewHolder =

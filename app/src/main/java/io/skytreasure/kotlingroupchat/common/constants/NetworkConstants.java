@@ -23,4 +23,7 @@ public class NetworkConstants {
     public static final int FETCH_CURRENT_USER = 1011;
     public static final int FETCH_MESSAGES = 1012;
     public static final int CHANGE_ADMIN_STATUS=1013;
+    public static final int CREATE_USER_NODE=1014;
+    public static final int CHECK_GROUP_EXISTS=1015;
+    public static final int CREATE_ONE_ON_ONE_GROUP=1016;
 }

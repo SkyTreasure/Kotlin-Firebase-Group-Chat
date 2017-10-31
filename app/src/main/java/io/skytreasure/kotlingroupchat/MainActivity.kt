@@ -8,6 +8,7 @@ import android.view.View
 import android.widget.Toast
 import io.skytreasure.kotlingroupchat.chat.MyChatManager
 import io.skytreasure.kotlingroupchat.chat.ui.CreateGroupActivity
+import io.skytreasure.kotlingroupchat.chat.ui.OneOnOneChat
 import io.skytreasure.kotlingroupchat.chat.ui.ViewGroupsActivity
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.sCurrentUser
@@ -25,6 +26,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
         btn_creategroup.setOnClickListener(this)
         btn_showgroup.setOnClickListener(this)
+        btn_oneonone.setOnClickListener(this)
 
         MyChatManager.fetchAllUserInformation()
 
@@ -51,6 +53,11 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             }
             R.id.btn_showgroup -> {
                 val intent = Intent(this@MainActivity, ViewGroupsActivity::class.java)
+                startActivity(intent)
+            }
+
+            R.id.btn_oneonone -> {
+                val intent = Intent(this@MainActivity, OneOnOneChat::class.java)
                 startActivity(intent)
             }
         }

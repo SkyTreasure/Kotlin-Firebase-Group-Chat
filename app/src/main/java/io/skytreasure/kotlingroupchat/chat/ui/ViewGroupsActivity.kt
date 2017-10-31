@@ -61,7 +61,14 @@ class ViewGroupsActivity : AppCompatActivity(), View.OnClickListener {
             override fun handleData(`object`: Any, requestCode: Int?) {
                 sMyGroups?.clear()
                 for (group in sGroupMap!!) {
-                    sMyGroups?.add(group.value)
+                    if (!group.value.group!!) {
+                        if (!group.value.lastMessage?.sender_id.equals("")) {
+                            sMyGroups?.add(group.value)
+                        }
+                    } else {
+                        sMyGroups?.add(group.value)
+                    }
+
                 }
                 rv_main.layoutManager = LinearLayoutManager(this@ViewGroupsActivity) as RecyclerView.LayoutManager?
                 adapter = ViewGroupsAdapter(this@ViewGroupsActivity)

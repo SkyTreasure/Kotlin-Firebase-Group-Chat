@@ -72,6 +72,9 @@ dependencies {
     compile "com.google.firebase:firebase-storage:${gmsVersion}"
     compile "com.google.firebase:firebase-core:${gmsVersion}"
     compile "com.google.android.gms:play-services-analytics:${gmsVersion}"
+    compile "com.google.android.gms:play-services-maps:${gmsVersion}"
+    compile "com.google.android.gms:play-services-location:${gmsVersion}"
+    compile "com.google.android.gms:play-services-places:${gmsVersion}"
     kapt "com.android.databinding:compiler:$android_plugin_version"
     compile 'com.theartofdev.edmodo:android-image-cropper:2.3.1'
     compile "com.google.android.gms:play-services-auth:${gmsVersion}"

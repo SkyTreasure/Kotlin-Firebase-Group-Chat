@@ -30,4 +30,13 @@
         android:layout_centerVertical="true"
         android:text="Show My Groups" />
 
+    <Button
+        android:id="@+id/btn_oneonone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/btn_showgroup"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:text="One On One Chats" />
+
 </RelativeLayout>

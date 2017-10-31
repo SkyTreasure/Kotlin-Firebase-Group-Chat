@@ -24,6 +24,7 @@ import com.google.firebase.database.Transaction
 import android.databinding.adapters.NumberPickerBindingAdapter.setValue
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants
 import io.skytreasure.kotlingroupchat.common.constants.NetworkConstants
+import io.skytreasure.kotlingroupchat.common.util.MyTextUtil
 import kotlin.collections.HashMap
 
 
@@ -157,6 +158,48 @@ ref.updateChildren(updatedUserData, new Firebase.CompletionListener() {
                         //callback?.handleData(true, requestType)
                         var userModel: UserModel? = dataSnapshot?.getValue<UserModel>(UserModel::class.java)
                         fetchMyGroups(callback, requestType, userModel, true)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+
+
+                }
+            })
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+    }
+
+
+    /**
+     * This creates the new user node
+     *
+     */
+    fun createOrUpdateUserNode(callback: NotifyMeInterface?, userModel: UserModel?, requestType: Int?) {
+        try {
+            mUserRef?.child(userModel?.uid)?.runTransaction(object : Transaction.Handler {
+                override fun doTransaction(mutableData: MutableData): Transaction.Result {
+                    val p = mutableData.getValue<UserModel>(UserModel::class.java)
+                    if (p == null) {
+                        mutableData.setValue(userModel)
+                    } else {
+                        var newUserData: HashMap<String, Any?> = hashMapOf();
+                        newUserData.put("image_url", userModel?.image_url)
+                        newUserData.put("name", userModel?.name)
+                        newUserData.put("online", true)
+                        mUserRef?.child(userModel?.uid)?.updateChildren(newUserData)
+                    }
+                    return Transaction.success(mutableData)
+
+                }
+
+                override fun onComplete(databaseError: DatabaseError?, p1: Boolean, dataSnapshot: DataSnapshot?) {
+                    try {
+                        Log.d(TAG, "postTransaction:onComplete:" + databaseError)
+
+                        var userModel: UserModel? = dataSnapshot?.getValue<UserModel>(UserModel::class.java)
+                        callback?.handleData(userModel!!, requestType)
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
@@ -501,7 +544,78 @@ ref.updateChildren(updatedUserData, new Firebase.CompletionListener() {
         mGroupRef?.child(groupId)?.child(FirebaseConstants.MEMBERS)?.child(userModel?.uid)?.setValue(userModel)
 
         mUserRef?.child(userModel?.uid)?.child(FirebaseConstants.GROUP)?.child(groupId)?.setValue(true)
-        callback?.handleData(true,1)
+        callback?.handleData(true, 1)
+    }
+
+    /*
+     *
+     * Create a groupID of these two by calling getHash(uid1,uid2)
+     *
+     * Create a group with 2 members, group flag set to false. Then add group id in user1, user2 to be true
+     *
+     * Then add the message under the MESSAGE->GROUPID.
+     */
+    fun createOneOnOneChatGroup(callback: NotifyMeInterface, user2Id: String, user2: UserModel, requestType: Int) {
+
+        var newGroupId = MyTextUtil().getHash(sCurrentUser?.uid!!, user2Id)
+
+
+        var group: GroupModel = GroupModel("", "", newGroupId, false, false)
+
+        group.members.put(user2Id, user2)
+        group.members.put(sCurrentUser?.uid!!, sCurrentUser!!)
+
+        var time = Calendar.getInstance().timeInMillis
+
+        for (user in group.members) {
+            user.value.group = hashMapOf()
+            user.value.email = null
+            user.value.image_url = null
+            user.value.name = null
+            user.value.online = null
+            user.value.unread_group_count = 0
+            user.value.last_seen_message_timestamp = time.toString()
+            user.value.delete_till = time.toString()
+        }
+
+        mGroupRef?.child(newGroupId)?.setValue(group)
+
+        for (user in group.members) {
+            mUserRef?.child(user.value.uid)?.child(FirebaseConstants.GROUP)?.child(newGroupId)?.setValue(true)
+        }
+
+        sGroupMap?.put(group.groupId!!, group)
+
+        callback?.handleData(true, requestType)
+    }
+
+    /**
+     * Check if a group exists or not
+     */
+    fun checkIfGroupExists(callback: NotifyMeInterface, groupId: String, requestType: Int) {
+        try {
+
+            mGroupRef?.child(groupId)?.runTransaction(object : Transaction.Handler {
+                override fun doTransaction(p0: MutableData?): Transaction.Result {
+                    val p = p0?.getValue<GroupModel>(GroupModel::class.java)
+                    if (p == null) {
+
+                    }
+                    return Transaction.success(p0)
+                }
+
+                override fun onComplete(p0: DatabaseError?, p1: Boolean, p2: DataSnapshot?) {
+                    val p = p2?.getValue<GroupModel>(GroupModel::class.java)
+                    if (p == null) {
+                        callback.handleData(false, requestType)
+                    } else {
+                        callback.handleData(true, requestType)
+                    }
+                }
+            })
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
 }

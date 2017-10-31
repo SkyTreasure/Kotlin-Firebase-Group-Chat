@@ -112,7 +112,7 @@ class GroupDetailsActivity : AppCompatActivity(), View.OnClickListener {
                     tv_no_of_participants.setText("" + selectedUserList?.size!! + " Participants")
                 }
 
-            }, AppConstants.CREATION, groupId!!)
+            }, AppConstants.CREATION, "23")
             rv_main.adapter = adapter
             tv_exit_group.visibility = View.GONE
         }
@@ -346,7 +346,7 @@ class GroupDetailsActivity : AppCompatActivity(), View.OnClickListener {
 
         if (isValid) {
 
-            sendFileFirebase(storageRef, resultUri!!, groupId!!)
+            //sendFileFirebase(storageRef, resultUri!!, groupId!!)
 
             MyChatManager.createGroup(object : NotifyMeInterface {
                 override fun handleData(`object`: Any, requestCode: Int?) {

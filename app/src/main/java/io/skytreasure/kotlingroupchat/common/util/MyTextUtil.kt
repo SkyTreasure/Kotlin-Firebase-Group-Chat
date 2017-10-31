@@ -33,5 +33,10 @@ class MyTextUtil {
         return false
     }
 
+    fun getHash(a: String, b: String): String {
+        var result: Long = 17
+        result = 37 * result + a.hashCode().toLong() + b.hashCode().toLong()
+        return result.toString()
+    }
 
 }
