@@ -15,8 +15,9 @@ public class FirebaseConstants {
      * last_seen_message_timestamp
      */
     public static final String L_S_M_T = "last_seen_message_timestamp";
-    public static final String LAST_MESSAGE="lastMessage";
-    public static final String IMAGE_URL="image_url";
-    public static final String NAME="name";
-    public static final String ADMIN="admin";
+    public static final String LAST_MESSAGE = "lastMessage";
+    public static final String IMAGE_URL = "image_url";
+    public static final String NAME = "name";
+    public static final String ADMIN = "admin";
+    public static final String DELETE_TILL_TIMESTAMP = "delete_till";
 }

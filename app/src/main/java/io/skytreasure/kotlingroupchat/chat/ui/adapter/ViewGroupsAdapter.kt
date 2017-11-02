@@ -24,12 +24,12 @@ import io.skytreasure.kotlingroupchat.common.util.loadRoundImage
  */
 class ViewGroupsAdapter(val context: Context) : RecyclerView.Adapter<UserRowViewHolder>() {
 
-    var user2: UserModel = UserModel()
 
     override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): UserRowViewHolder =
             UserRowViewHolder(LayoutInflater.from(parent?.context).inflate(R.layout.item_user, parent, false))
 
     override fun onBindViewHolder(holder: UserRowViewHolder, position: Int) {
+        var user2: UserModel = UserModel()
         val group = DataConstants.sMyGroups?.get(position)
 
         if (group?.group!!) {
@@ -48,7 +48,7 @@ class ViewGroupsAdapter(val context: Context) : RecyclerView.Adapter<UserRowView
                 holder.tvUnreadCount.visibility = View.GONE
             }
 
-            loadRoundImage(holder.ivProfile, group?.image_url!!)
+            loadRoundImage(holder.ivProfile, group.image_url!!)
 
 
         } else {

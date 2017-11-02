@@ -618,4 +618,15 @@ ref.updateChildren(updatedUserData, new Firebase.CompletionListener() {
         }
     }
 
+    /**
+     * This function is used to update the current timestamp to delete chats
+     */
+    fun deleteGroupChat(callback: NotifyMeInterface?, groupId: String?) {
+        var time = Calendar.getInstance().timeInMillis
+        mGroupRef?.child(groupId!!)?.child(FirebaseConstants.MEMBERS)?.child(sCurrentUser?.uid)
+                ?.child(FirebaseConstants.DELETE_TILL_TIMESTAMP)?.setValue(time.toString())
+
+        callback?.handleData(true, NetworkConstants.DELETE_GROUP_CHAT)
+    }
+
 }

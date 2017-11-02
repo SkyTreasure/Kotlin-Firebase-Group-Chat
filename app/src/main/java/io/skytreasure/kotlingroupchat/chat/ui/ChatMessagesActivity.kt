@@ -9,6 +9,7 @@ import android.net.Uri
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Environment
+import android.os.Handler
 import android.provider.MediaStore
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
@@ -48,6 +49,7 @@ import io.skytreasure.kotlingroupchat.common.util.MyTextUtil
 import kotlinx.android.synthetic.main.activity_chat_messages.*
 import java.io.File
 import java.util.*
+import kotlin.concurrent.schedule
 
 class ChatMessagesActivity : AppCompatActivity(), View.OnClickListener {
 
@@ -224,6 +226,9 @@ class ChatMessagesActivity : AppCompatActivity(), View.OnClickListener {
                                 2 ->
                                     //Location
                                     locationPlacesIntent()
+                                3 ->
+                                    //Delete Chat messages of this group
+                                    deleteChatMessagesOfThisGroup()
                             }
                         })
 
@@ -237,6 +242,23 @@ class ChatMessagesActivity : AppCompatActivity(), View.OnClickListener {
                 }
             }
         }
+    }
+
+    private fun deleteChatMessagesOfThisGroup() {
+        MyChatManager.setmContext(this@ChatMessagesActivity)
+        MyChatManager.deleteGroupChat(object : NotifyMeInterface {
+            override fun handleData(`object`: Any, requestCode: Int?) {
+                if (`object` as Boolean) {
+
+                    Handler().postDelayed({
+                        readMessagesFromFirebase(groupId!!)
+                    }, 2000)
+
+
+                }
+            }
+
+        }, groupId)
     }
 
 
@@ -360,8 +382,13 @@ class ChatMessagesActivity : AppCompatActivity(), View.OnClickListener {
 
 
     private fun readMessagesFromFirebase(groupId: String) {
+        var currentGroup = DataConstants.sGroupMap?.get(groupId)
+        var time = Calendar.getInstance().timeInMillis
+        var deleteTill: String = currentGroup?.members?.get(sCurrentUser?.uid)?.delete_till!!
         mFirebaseDatabaseReference = FirebaseDatabase.getInstance().reference
-        val firebaseAdapter = ChatMessagesRecyclerAdapter(groupId, this@ChatMessagesActivity, mFirebaseDatabaseReference?.child(FirebaseConstants.MESSAGES)?.child(groupId)!!)
+        val firebaseAdapter = ChatMessagesRecyclerAdapter(groupId,
+                this@ChatMessagesActivity,
+                mFirebaseDatabaseReference?.child(FirebaseConstants.MESSAGES)?.child(groupId)?.orderByChild("timestamp")?.startAt(deleteTill)!!)
 
         firebaseAdapter.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
             override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
@@ -373,6 +400,7 @@ class ChatMessagesActivity : AppCompatActivity(), View.OnClickListener {
                 }
             }
         })
+
         chat_messages_recycler.setLayoutManager(mLinearLayoutManager)
         chat_messages_recycler.setAdapter(firebaseAdapter)
         btnSend.visibility = View.VISIBLE

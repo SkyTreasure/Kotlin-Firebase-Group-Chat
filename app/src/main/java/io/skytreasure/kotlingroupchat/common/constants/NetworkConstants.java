@@ -26,4 +26,5 @@ public class NetworkConstants {
     public static final int CREATE_USER_NODE=1014;
     public static final int CHECK_GROUP_EXISTS=1015;
     public static final int CREATE_ONE_ON_ONE_GROUP=1016;
+    public static final int DELETE_GROUP_CHAT=1017;
 }

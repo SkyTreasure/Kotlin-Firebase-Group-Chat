@@ -13,6 +13,7 @@ import android.widget.RelativeLayout
 import android.widget.TextView
 import com.firebase.ui.database.FirebaseRecyclerAdapter
 import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.Query
 import io.skytreasure.kotlingroupchat.R
 import io.skytreasure.kotlingroupchat.R.id.chat_messages_recycler
 import io.skytreasure.kotlingroupchat.chat.model.MessageModel
@@ -26,8 +27,10 @@ import io.skytreasure.kotlingroupchat.databinding.ItemChatRowBinding
 /**
  * Created by akash on 24/10/17.
  */
-class ChatMessagesRecyclerAdapter(var groupId: String, var context: Context, var ref: DatabaseReference) :
-        FirebaseRecyclerAdapter<MessageModel, ChatMessagesRecyclerAdapter.ViewHolder>(MessageModel::class.java, R.layout.item_chat_row, ChatMessagesRecyclerAdapter.ViewHolder::class.java, ref) {
+class ChatMessagesRecyclerAdapter(var groupId: String, var context: Context, var ref: Query) :
+        FirebaseRecyclerAdapter<MessageModel, ChatMessagesRecyclerAdapter.ViewHolder>(
+                MessageModel::class.java, R.layout.item_chat_row,
+                ChatMessagesRecyclerAdapter.ViewHolder::class.java, ref) {
 
 
     override fun populateViewHolder(holder: ViewHolder?, model: MessageModel?, position: Int) {

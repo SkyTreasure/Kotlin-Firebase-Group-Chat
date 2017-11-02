@@ -6,6 +6,7 @@
         <item>Camera</item>
         <item>Gallery</item>
         <item>Location</item>
+        <item>Delete Chat Messages</item>
     </string-array>
 
 </resources>
