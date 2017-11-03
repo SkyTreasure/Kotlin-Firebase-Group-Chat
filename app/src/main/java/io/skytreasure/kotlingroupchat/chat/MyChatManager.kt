@@ -623,10 +623,26 @@ ref.updateChildren(updatedUserData, new Firebase.CompletionListener() {
      */
     fun deleteGroupChat(callback: NotifyMeInterface?, groupId: String?) {
         var time = Calendar.getInstance().timeInMillis
-        mGroupRef?.child(groupId!!)?.child(FirebaseConstants.MEMBERS)?.child(sCurrentUser?.uid)
-                ?.child(FirebaseConstants.DELETE_TILL_TIMESTAMP)?.setValue(time.toString())
 
-        callback?.handleData(true, NetworkConstants.DELETE_GROUP_CHAT)
+        mGroupRef?.child(groupId!!)?.child("lastMessage")?.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onCancelled(p0: DatabaseError?) {
+
+            }
+
+            override fun onDataChange(p0: DataSnapshot?) {
+                if (p0?.exists()!!) {
+                    var message: MessageModel = p0.getValue<MessageModel>(MessageModel::class.java)!!
+
+                    mGroupRef?.child(groupId)?.child(FirebaseConstants.MEMBERS)?.child(sCurrentUser?.uid)
+                            ?.child(FirebaseConstants.DELETE_TILL_TIMESTAMP)?.setValue(/*message.timestamp.toString()*/time.toString())
+                    callback?.handleData(true, NetworkConstants.DELETE_GROUP_CHAT)
+                }
+
+            }
+
+        })
+
+
     }
 
 }

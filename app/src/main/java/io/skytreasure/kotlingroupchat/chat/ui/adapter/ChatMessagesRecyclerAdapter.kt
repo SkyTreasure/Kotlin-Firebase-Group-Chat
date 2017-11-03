@@ -32,10 +32,19 @@ class ChatMessagesRecyclerAdapter(var groupId: String, var context: Context, var
                 MessageModel::class.java, R.layout.item_chat_row,
                 ChatMessagesRecyclerAdapter.ViewHolder::class.java, ref) {
 
+    var firstMessage: MessageModel = MessageModel()
+    var totalCount: Int = 0;
+
 
     override fun populateViewHolder(holder: ViewHolder?, model: MessageModel?, position: Int) {
+
+
         val viewHolder = holder as ViewHolder
         val chatMessage = model!!
+        totalCount = position
+        if (position == 0) {
+            firstMessage = chatMessage
+        }
 
         if (chatMessage.sender_id.toString() == currentUser.uid) {
             viewHolder.llParent.gravity = Gravity.END
@@ -62,7 +71,6 @@ class ChatMessagesRecyclerAdapter(var groupId: String, var context: Context, var
     var currentUser: UserModel = SharedPrefManager.getInstance(context).savedUserModel!!
 
 
-
     /* override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): ChatMessagesRecyclerAdapter.ViewHolder =
               ViewHolder(DataBindingUtil.inflate(LayoutInflater.from(parent?.context),
                       R.layout.item_chat_row, parent, false)
@@ -71,6 +79,14 @@ class ChatMessagesRecyclerAdapter(var groupId: String, var context: Context, var
     override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): ViewHolder =
             ViewHolder(LayoutInflater.from(parent?.context).inflate(R.layout.item_chat_row, parent, false))
 
+
+    override fun getItem(position: Int): MessageModel {
+        return super.getItem(position)
+    }
+
+    override fun getItemCount(): Int {
+        return super.getItemCount()
+    }
 
     /*  override fun getItemCount(): Int {
           *//**//*  if (MyChatManager.getChatMessages(mKey) == null) return 0

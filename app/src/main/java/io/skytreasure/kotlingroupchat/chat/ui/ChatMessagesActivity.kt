@@ -18,7 +18,9 @@ import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.text.format.DateFormat
 import android.util.Log
+import android.view.Gravity
 import android.view.View
+import android.widget.Toast
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException
 import com.google.android.gms.common.GooglePlayServicesRepairableException
 import com.google.android.gms.location.places.ui.PlacePicker
@@ -26,6 +28,7 @@ import com.google.android.gms.tasks.OnFailureListener
 import com.google.android.gms.tasks.OnSuccessListener
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.Query
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.UploadTask
@@ -36,7 +39,10 @@ import io.skytreasure.kotlingroupchat.chat.model.FileModel
 import io.skytreasure.kotlingroupchat.chat.model.LocationModel
 import io.skytreasure.kotlingroupchat.chat.model.MessageModel
 import io.skytreasure.kotlingroupchat.chat.model.UserModel
+import io.skytreasure.kotlingroupchat.chat.ui.ViewHolders.ViewHolder
 import io.skytreasure.kotlingroupchat.chat.ui.adapter.ChatMessagesRecyclerAdapter
+import io.skytreasure.kotlingroupchat.chat.ui.widget.EndlessRecyclerViewScrollListener
+import io.skytreasure.kotlingroupchat.chat.ui.widget.InfiniteFirebaseRecyclerAdapter
 import io.skytreasure.kotlingroupchat.common.constants.AppConstants
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.groupMembersMap
@@ -84,6 +90,7 @@ class ChatMessagesActivity : AppCompatActivity(), View.OnClickListener {
         groupId = intent.getStringExtra(AppConstants.GROUP_ID)
         position = intent.getIntExtra(AppConstants.POSITION, 1)
         type = intent.getStringExtra(AppConstants.CHAT_TYPE)
+        tv_loadmore.setOnClickListener(this)
 
         MyChatManager.setmContext(this@ChatMessagesActivity)
 
@@ -92,8 +99,6 @@ class ChatMessagesActivity : AppCompatActivity(), View.OnClickListener {
 
                 if (groupId != null) {
                     chat_room_title.text = sMyGroups?.get(position!!)?.name
-
-
                     mLinearLayoutManager = LinearLayoutManager(this)
                     mLinearLayoutManager!!.setStackFromEnd(true)
                     //  chat_messages_recycler.layoutManager = mLinearLayoutManager
@@ -108,7 +113,6 @@ class ChatMessagesActivity : AppCompatActivity(), View.OnClickListener {
                         override fun handleData(`object`: Any, requestCode: Int?) {
                             readMessagesFromFirebase(groupId!!)
                             getLastMessageAndUpdateUnreadCount()
-
                         }
 
                     }, NetworkConstants.FETCH_GROUP_MEMBERS_DETAILS, groupId)
@@ -199,6 +203,11 @@ class ChatMessagesActivity : AppCompatActivity(), View.OnClickListener {
                 if (!message.isEmpty()) {
                     sendMessage(message!!)
                 }
+            }
+
+            R.id.tv_loadmore -> {
+                /* newAdapter?.more()
+                 tv_loadmore.visibility = View.GONE*/
             }
 
             R.id.iv_back -> {
@@ -370,6 +379,11 @@ class ChatMessagesActivity : AppCompatActivity(), View.OnClickListener {
 
             override fun handleData(`object`: Any, requestCode: Int?) {
                 et_chat.setText("")
+                Handler().postDelayed({
+
+                    chat_messages_recycler.scrollToPosition(newAdapter?.mSnapshots?.mSnapshots?.count()!!)
+                }, 1000)
+
             }
 
         }, NetworkConstants.SEND_MESSAGE_REQUEST, groupId, messageModel)
@@ -381,32 +395,113 @@ class ChatMessagesActivity : AppCompatActivity(), View.OnClickListener {
     }
 
 
+    var newAdapter: InfiniteFirebaseRecyclerAdapter<MessageModel, ViewHolder>? = null
+
     private fun readMessagesFromFirebase(groupId: String) {
         var currentGroup = DataConstants.sGroupMap?.get(groupId)
         var time = Calendar.getInstance().timeInMillis
         var deleteTill: String = currentGroup?.members?.get(sCurrentUser?.uid)?.delete_till!!
         mFirebaseDatabaseReference = FirebaseDatabase.getInstance().reference
-        val firebaseAdapter = ChatMessagesRecyclerAdapter(groupId,
-                this@ChatMessagesActivity,
-                mFirebaseDatabaseReference?.child(FirebaseConstants.MESSAGES)?.child(groupId)?.orderByChild("timestamp")?.startAt(deleteTill)!!)
 
-        firebaseAdapter.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
-            override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
-                super.onItemRangeInserted(positionStart, itemCount)
-                val friendlyMessageCount = firebaseAdapter.getItemCount()
-                val lastVisiblePosition = mLinearLayoutManager?.findLastCompletelyVisibleItemPosition()
-                if (lastVisiblePosition == -1 || positionStart >= friendlyMessageCount - 1 && lastVisiblePosition == positionStart - 1) {
-                    chat_messages_recycler.scrollToPosition(positionStart)
+        var itemCount: Int = 10
+
+        /* var ref: Query = mFirebaseDatabaseReference?.child(FirebaseConstants.MESSAGES)
+                 ?.child(groupId)?.orderByChild("timestamp")
+                 ?.startAt(deleteTill)?.limitToLast(itemCount)!!*/
+
+        var ref: Query = mFirebaseDatabaseReference?.child(FirebaseConstants.MESSAGES)
+                ?.child(groupId)!!
+
+
+        var firebaseAdapter = ChatMessagesRecyclerAdapter(groupId,
+                this@ChatMessagesActivity, ref
+        )
+
+
+        newAdapter = object : InfiniteFirebaseRecyclerAdapter<MessageModel, ViewHolder>(MessageModel::class.java, R.layout.item_chat_row, ViewHolder::class.java, ref, itemCount, deleteTill,chat_messages_recycler) {
+            override fun populateViewHolder(viewHolder: ViewHolder?, model: MessageModel?, position: Int) {
+                val viewHolder = viewHolder as ViewHolder
+                val chatMessage = model!!
+
+                if (chatMessage.sender_id.toString() == sCurrentUser?.uid) {
+                    viewHolder.llParent.gravity = Gravity.END
+                    viewHolder.llChild.background =
+                            ContextCompat.getDrawable(this@ChatMessagesActivity, R.drawable.chat_bubble_grey_sender)
+                    viewHolder.name.text = "You"
+                } else {
+                    viewHolder.llParent.gravity = Gravity.START
+                    viewHolder.name.text = DataConstants.userMap?.get(chatMessage.sender_id!!)?.name
+                    viewHolder.llChild.background = ContextCompat.getDrawable(viewHolder.llParent.context, R.drawable.chat_bubble_grey)
                 }
+                viewHolder.message.text = chatMessage.message
+                try {
+                    viewHolder.timestamp.text = MyTextUtil().getTimestamp(chatMessage.timestamp?.toLong()!!)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+
+
+
+                viewHolder.rlName.layoutParams.width = viewHolder.message.layoutParams.width
             }
-        })
+
+            override fun getItemCount(): Int {
+                return super.getItemCount()
+            }
+
+        }
+
+        /* firebaseAdapter.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
+             override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
+                 super.onItemRangeInserted(positionStart, itemCount)
+                 val friendlyMessageCount = firebaseAdapter.getItemCount()
+                 val lastVisiblePosition = mLinearLayoutManager?.findLastCompletelyVisibleItemPosition()
+                 if (lastVisiblePosition == -1 || positionStart >= friendlyMessageCount - 1 && lastVisiblePosition == positionStart - 1) {
+                     chat_messages_recycler.scrollToPosition(positionStart)
+                 }
+
+             }
+
+
+         })*/
 
         chat_messages_recycler.setLayoutManager(mLinearLayoutManager)
-        chat_messages_recycler.setAdapter(firebaseAdapter)
+        //chat_messages_recycler.setAdapter(firebaseAdapter)
+        chat_messages_recycler.setAdapter(newAdapter)
+        chat_messages_recycler.scrollToPosition(itemCount)
         btnSend.visibility = View.VISIBLE
         progressDialog?.hide()
+
+        /*chat_messages_recycler.addOnScrollListener(object : EndlessRecyclerViewScrollListener(mLinearLayoutManager) {
+            override fun onLoadMore(page: Int, totalItemsCount: Int, view: RecyclerView?) {
+                (newAdapter as InfiniteFirebaseRecyclerAdapter<MessageModel, ViewHolder>).more()
+            }
+        })*/
+
+        chat_messages_recycler.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView?, newState: Int) {
+                super.onScrollStateChanged(recyclerView, newState)
+                if (IsRecyclerViewAtTop() && newState == RecyclerView.SCROLL_STATE_IDLE) {
+                    /*    Toast.makeText(this@ChatMessagesActivity, "Top most item", Toast.LENGTH_SHORT).show();
+                        ref = mFirebaseDatabaseReference?.child(FirebaseConstants.MESSAGES)
+                                ?.child(groupId)?.orderByChild("timestamp")
+                                ?.startAt(deleteTill)?.endAt(firebaseAdapter.firstMessage.timestamp)?.limitToLast(itemCount + 10)!!
+
+                        */
+                    newAdapter?.more()
+                }
+            }
+
+            override fun onScrolled(recyclerView: RecyclerView?, dx: Int, dy: Int) {
+
+
+            }
+        })
     }
 
+    private fun IsRecyclerViewAtTop(): Boolean {
+        return if (chat_messages_recycler.getChildCount() == 0) true else chat_messages_recycler.getChildAt(0).getTop() == 0
+    }
 
     protected override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
 
