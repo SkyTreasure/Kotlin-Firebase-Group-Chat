@@ -405,17 +405,9 @@ class ChatMessagesActivity : AppCompatActivity(), View.OnClickListener {
 
         var itemCount: Int = 10
 
-        /* var ref: Query = mFirebaseDatabaseReference?.child(FirebaseConstants.MESSAGES)
-                 ?.child(groupId)?.orderByChild("timestamp")
-                 ?.startAt(deleteTill)?.limitToLast(itemCount)!!*/
-
         var ref: Query = mFirebaseDatabaseReference?.child(FirebaseConstants.MESSAGES)
                 ?.child(groupId)!!
 
-
-        var firebaseAdapter = ChatMessagesRecyclerAdapter(groupId,
-                this@ChatMessagesActivity, ref
-        )
 
 
         newAdapter = object : InfiniteFirebaseRecyclerAdapter<MessageModel, ViewHolder>(MessageModel::class.java, R.layout.item_chat_row, ViewHolder::class.java, ref, itemCount, deleteTill,chat_messages_recycler) {
@@ -451,19 +443,6 @@ class ChatMessagesActivity : AppCompatActivity(), View.OnClickListener {
 
         }
 
-        /* firebaseAdapter.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
-             override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
-                 super.onItemRangeInserted(positionStart, itemCount)
-                 val friendlyMessageCount = firebaseAdapter.getItemCount()
-                 val lastVisiblePosition = mLinearLayoutManager?.findLastCompletelyVisibleItemPosition()
-                 if (lastVisiblePosition == -1 || positionStart >= friendlyMessageCount - 1 && lastVisiblePosition == positionStart - 1) {
-                     chat_messages_recycler.scrollToPosition(positionStart)
-                 }
-
-             }
-
-
-         })*/
 
         chat_messages_recycler.setLayoutManager(mLinearLayoutManager)
         //chat_messages_recycler.setAdapter(firebaseAdapter)
@@ -472,22 +451,12 @@ class ChatMessagesActivity : AppCompatActivity(), View.OnClickListener {
         btnSend.visibility = View.VISIBLE
         progressDialog?.hide()
 
-        /*chat_messages_recycler.addOnScrollListener(object : EndlessRecyclerViewScrollListener(mLinearLayoutManager) {
-            override fun onLoadMore(page: Int, totalItemsCount: Int, view: RecyclerView?) {
-                (newAdapter as InfiniteFirebaseRecyclerAdapter<MessageModel, ViewHolder>).more()
-            }
-        })*/
 
         chat_messages_recycler.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView?, newState: Int) {
                 super.onScrollStateChanged(recyclerView, newState)
                 if (IsRecyclerViewAtTop() && newState == RecyclerView.SCROLL_STATE_IDLE) {
-                    /*    Toast.makeText(this@ChatMessagesActivity, "Top most item", Toast.LENGTH_SHORT).show();
-                        ref = mFirebaseDatabaseReference?.child(FirebaseConstants.MESSAGES)
-                                ?.child(groupId)?.orderByChild("timestamp")
-                                ?.startAt(deleteTill)?.endAt(firebaseAdapter.firstMessage.timestamp)?.limitToLast(itemCount + 10)!!
-
-                        */
+                     
                     newAdapter?.more()
                 }
             }
