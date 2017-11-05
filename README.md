@@ -16,6 +16,12 @@ Group chat using firebase built in Kotlin
 
 ## ScreenShots
 
+<img src="https://user-images.githubusercontent.com/1933684/32412252-6220b24e-c217-11e7-84a0-9a72323c35fb.png" width="400" height="800" />
+
+<img src="https://user-images.githubusercontent.com/1933684/32412253-624cb5e2-c217-11e7-8fbc-8548479585ad.png" width="400" height="800" />
+
+<img src="https://user-images.githubusercontent.com/1933684/32412251-61f4bc7a-c217-11e7-8e3f-64eb1ea2f6f3.png" width="400" height="800" />
+
 <img src="https://user-images.githubusercontent.com/1933684/32412246-6123ebb8-c217-11e7-9ab9-a916ef616af6.png" width="400" height="800" />
 
 <img src="https://user-images.githubusercontent.com/1933684/32412247-6155a964-c217-11e7-8448-6b2bf1b46da9.png" width="400" height="800" />
