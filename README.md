@@ -8,6 +8,11 @@ Group chat using firebase built in Kotlin
 4. Create groups
 5. Delete messages
 6. Reverse pagination of chat messages using Recycler view. 
+7. Give Admin permission to the user
+8. Revoking Admin permission from the user
+9. Admin adding members to the group
+10. Admin removing members from the group
+
 
 ## Pending Features-
 1. Notifications
