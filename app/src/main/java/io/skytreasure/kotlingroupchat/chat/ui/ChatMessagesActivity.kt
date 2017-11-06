@@ -52,6 +52,7 @@ import io.skytreasure.kotlingroupchat.common.constants.FirebaseConstants
 import io.skytreasure.kotlingroupchat.common.constants.NetworkConstants
 import io.skytreasure.kotlingroupchat.common.controller.NotifyMeInterface
 import io.skytreasure.kotlingroupchat.common.util.MyTextUtil
+import io.skytreasure.kotlingroupchat.common.util.MyViewUtils
 import kotlinx.android.synthetic.main.activity_chat_messages.*
 import java.io.File
 import java.util.*
@@ -165,6 +166,15 @@ class ChatMessagesActivity : AppCompatActivity(), View.OnClickListener {
                 if (`object` as Boolean) {
                     //Exists so fetch the data
                     readMessagesFromFirebase(groupId!!)
+                    tv_last_seen.visibility = View.VISIBLE
+                    user2 = DataConstants.userMap?.get(user2Id)!!
+                    if (user2.online!!) {
+                        tv_last_seen.setText("Online")
+                    } else if (user2.last_seen_online != null) {
+                        tv_last_seen.setText(MyTextUtil().getTimestamp(user2.last_seen_online!!.toLong()))
+                    } else {
+                        tv_last_seen.visibility = View.GONE
+                    }
                     groupIsPresent = true
                 } else {
                     //Doesn't exists wait till first message is sent (Do nothing)
@@ -172,7 +182,7 @@ class ChatMessagesActivity : AppCompatActivity(), View.OnClickListener {
                     MyChatManager.createOrUpdateUserNode(object : NotifyMeInterface {
                         override fun handleData(`object`: Any, requestCode: Int?) {
                             user2 = `object` as UserModel
-                            createGroupOfTwo(user2, null)
+                            //createGroupOfTwo(user2, null)
                         }
                     }, user2, NetworkConstants.CREATE_USER_NODE)
                 }
@@ -410,7 +420,7 @@ class ChatMessagesActivity : AppCompatActivity(), View.OnClickListener {
 
 
 
-        newAdapter = object : InfiniteFirebaseRecyclerAdapter<MessageModel, ViewHolder>(MessageModel::class.java, R.layout.item_chat_row, ViewHolder::class.java, ref, itemCount, deleteTill,chat_messages_recycler) {
+        newAdapter = object : InfiniteFirebaseRecyclerAdapter<MessageModel, ViewHolder>(MessageModel::class.java, R.layout.item_chat_row, ViewHolder::class.java, ref, itemCount, deleteTill, chat_messages_recycler) {
             override fun populateViewHolder(viewHolder: ViewHolder?, model: MessageModel?, position: Int) {
                 val viewHolder = viewHolder as ViewHolder
                 val chatMessage = model!!
@@ -466,6 +476,8 @@ class ChatMessagesActivity : AppCompatActivity(), View.OnClickListener {
 
             }
         })
+
+
     }
 
     private fun IsRecyclerViewAtTop(): Boolean {

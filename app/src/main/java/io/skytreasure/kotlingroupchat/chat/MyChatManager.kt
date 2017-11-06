@@ -653,13 +653,14 @@ ref.updateChildren(updatedUserData, new Firebase.CompletionListener() {
         FirebaseDatabase.getInstance().reference.child(".info/connected")
         var onlineRef = FirebaseDatabase.getInstance().reference.child(".info/connected")
         var currentUserRef = FirebaseDatabase.getInstance().reference.child("/users/" + sCurrentUser?.uid + "/online");
-
+        var lastSeenRef = FirebaseDatabase.getInstance().reference.child("/users/" + sCurrentUser?.uid + "/last_seen_online");
 
         onlineRef?.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 Log.d("", "DataSnapshot:" + dataSnapshot)
                 if (dataSnapshot.getValue(Boolean::class.java)!!) {
                     currentUserRef?.onDisconnect()?.setValue(false)
+                    lastSeenRef?.onDisconnect()?.setValue(Calendar.getInstance().timeInMillis.toString())
                     currentUserRef?.setValue(true)
                 }
             }

@@ -31,7 +31,7 @@
                 <TextView
                     android:id="@+id/chat_room_title"
                     android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:layout_toEndOf="@+id/iv_back"
                     android:gravity="center_vertical"
@@ -39,6 +39,17 @@
                     android:textColor="@color/white"
                     android:textSize="18sp"
                     android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tv_last_seen"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/chat_room_title"
+                    android:layout_marginStart="8dp"
+                    android:layout_toEndOf="@+id/iv_back"
+                    android:gravity="center_vertical"
+                    android:textColor="@color/white"
+                    android:textSize="12sp" />
 
 
                 <ImageView
