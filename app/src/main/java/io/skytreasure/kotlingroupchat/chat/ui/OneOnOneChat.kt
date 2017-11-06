@@ -25,6 +25,8 @@ class OneOnOneChat : AppCompatActivity() {
         setContentView(R.layout.activity_one_on_one_chat)
 
 
+
+
         MyChatManager.setmContext(this@OneOnOneChat)
 
         if (DataConstants.userList?.size == 0) {

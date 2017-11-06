@@ -456,7 +456,7 @@ class ChatMessagesActivity : AppCompatActivity(), View.OnClickListener {
             override fun onScrollStateChanged(recyclerView: RecyclerView?, newState: Int) {
                 super.onScrollStateChanged(recyclerView, newState)
                 if (IsRecyclerViewAtTop() && newState == RecyclerView.SCROLL_STATE_IDLE) {
-                     
+
                     newAdapter?.more()
                 }
             }

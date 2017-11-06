@@ -6,6 +6,8 @@ import android.os.Bundle
 import kotlinx.android.synthetic.main.activity_main.*
 import android.view.View
 import android.widget.Toast
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
 import io.skytreasure.kotlingroupchat.chat.MyChatManager
 import io.skytreasure.kotlingroupchat.chat.ui.CreateGroupActivity
 import io.skytreasure.kotlingroupchat.chat.ui.OneOnOneChat
@@ -15,8 +17,17 @@ import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.s
 import io.skytreasure.kotlingroupchat.common.constants.NetworkConstants
 import io.skytreasure.kotlingroupchat.common.controller.NotifyMeInterface
 import io.skytreasure.kotlingroupchat.common.util.SharedPrefManager
+import com.google.firebase.database.DatabaseError
+import android.databinding.adapters.NumberPickerBindingAdapter.setValue
+import android.util.Log
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.ValueEventListener
+
 
 class MainActivity : AppCompatActivity(), View.OnClickListener {
+
+    var onlineRef: DatabaseReference? = null
+    var currentUserRef: DatabaseReference? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,6 +38,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         btn_creategroup.setOnClickListener(this)
         btn_showgroup.setOnClickListener(this)
         btn_oneonone.setOnClickListener(this)
+
+        MyChatManager.setOnlinePresence()
 
         MyChatManager.fetchAllUserInformation()
 

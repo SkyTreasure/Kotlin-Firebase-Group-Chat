@@ -645,4 +645,29 @@ ref.updateChildren(updatedUserData, new Firebase.CompletionListener() {
 
     }
 
+    /**
+     * This function sets the online status to true under user node. And sets to false when
+     * user exits the app.
+     */
+    fun setOnlinePresence() {
+        FirebaseDatabase.getInstance().reference.child(".info/connected")
+        var onlineRef = FirebaseDatabase.getInstance().reference.child(".info/connected")
+        var currentUserRef = FirebaseDatabase.getInstance().reference.child("/users/" + sCurrentUser?.uid + "/online");
+
+
+        onlineRef?.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                Log.d("", "DataSnapshot:" + dataSnapshot)
+                if (dataSnapshot.getValue(Boolean::class.java)!!) {
+                    currentUserRef?.onDisconnect()?.setValue(false)
+                    currentUserRef?.setValue(true)
+                }
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                Log.d("", "DatabaseError:" + databaseError)
+            }
+        })
+    }
+
 }
