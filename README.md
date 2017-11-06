@@ -12,6 +12,7 @@ Group chat using firebase built in Kotlin
 8. Revoking Admin permission from the user
 9. Admin adding members to the group
 10. Admin removing members from the group
+11. User Online/Offline presence status. 
 
 
 ## Pending Features-
