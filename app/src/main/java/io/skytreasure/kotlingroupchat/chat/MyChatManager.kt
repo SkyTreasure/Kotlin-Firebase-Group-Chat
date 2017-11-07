@@ -2,6 +2,7 @@ package io.skytreasure.kotlingroupchat.chat
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
@@ -22,9 +23,11 @@ import io.skytreasure.kotlingroupchat.common.util.SharedPrefManager
 import java.util.*
 import com.google.firebase.database.Transaction
 import android.databinding.adapters.NumberPickerBindingAdapter.setValue
+import android.provider.Settings
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants
 import io.skytreasure.kotlingroupchat.common.constants.NetworkConstants
 import io.skytreasure.kotlingroupchat.common.util.MyTextUtil
+import io.skytreasure.kotlingroupchat.login.LoginActivity
 import kotlin.collections.HashMap
 
 
@@ -169,6 +172,31 @@ ref.updateChildren(updatedUserData, new Firebase.CompletionListener() {
             e.printStackTrace()
         }
 
+    }
+
+
+    fun updateFCMTokenAndDeviceId(context: Context, token: String) {
+        var deviceId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
+        var deviceIdMap: java.util.HashMap<String, String> = hashMapOf()
+        deviceIdMap.put(deviceId, token)
+        mUserRef?.child(sCurrentUser?.uid)?.child("deviceIds")?.setValue(deviceIdMap)
+    }
+
+    fun logout(context: Context) {
+        var deviceId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
+
+        var deviceIdMap: MutableMap<String, Any> = hashMapOf()
+        var userMap: MutableMap<String, Any?> = hashMapOf()
+
+        deviceIdMap.put(deviceId, "")
+        userMap.put("online", false)
+        userMap.put("/deviceIds/", deviceIdMap)
+        mUserRef?.child(sCurrentUser?.uid)?.updateChildren(userMap)
+
+        SharedPrefManager.getInstance(context).cleanSharedPreferences()
+        sCurrentUser = null
+        val intent = Intent(context, LoginActivity::class.java)
+        context.startActivity(intent)
     }
 
 

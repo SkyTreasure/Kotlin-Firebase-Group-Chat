@@ -39,4 +39,14 @@
         android:layout_centerVertical="true"
         android:text="One On One Chats" />
 
+
+    <Button
+        android:id="@+id/btn_logout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/btn_oneonone"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:text="Logout" />
+
 </RelativeLayout>

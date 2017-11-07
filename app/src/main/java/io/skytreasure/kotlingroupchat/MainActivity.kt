@@ -22,6 +22,7 @@ import android.databinding.adapters.NumberPickerBindingAdapter.setValue
 import android.util.Log
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.ValueEventListener
+import com.google.firebase.iid.FirebaseInstanceId
 
 
 class MainActivity : AppCompatActivity(), View.OnClickListener {
@@ -38,8 +39,10 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         btn_creategroup.setOnClickListener(this)
         btn_showgroup.setOnClickListener(this)
         btn_oneonone.setOnClickListener(this)
+        btn_logout.setOnClickListener(this)
 
         MyChatManager.setOnlinePresence()
+        MyChatManager.updateFCMTokenAndDeviceId(this@MainActivity, FirebaseInstanceId.getInstance().token!!)
 
         MyChatManager.fetchAllUserInformation()
 
@@ -72,6 +75,10 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             R.id.btn_oneonone -> {
                 val intent = Intent(this@MainActivity, OneOnOneChat::class.java)
                 startActivity(intent)
+            }
+
+            R.id.btn_logout -> {
+                MyChatManager.logout(this@MainActivity)
             }
         }
     }

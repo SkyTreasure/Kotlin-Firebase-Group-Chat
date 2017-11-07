@@ -152,7 +152,10 @@ class SharedPrefManager private constructor(context: Context) {
      */
     fun cleanSharedPreferences() {
         preferences.edit().clear().apply()
+
     }
+
+
 
     /**
      * @return

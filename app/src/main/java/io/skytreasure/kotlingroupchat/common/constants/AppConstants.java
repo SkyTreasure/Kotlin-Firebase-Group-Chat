@@ -17,4 +17,7 @@ public class AppConstants {
     public static final String GROUP_CHAT="group_chat";
     public static final String ONE_ON_ONE_CHAT="one_on_one_chat";
     public static final String USER_ID="user_id";
+
+    public static final String NEW_TOKEN="new_token";
+    public static final String NOTIFICATION_ID_REFRESHED="notification_id_refreshed";
 }
