@@ -14,7 +14,7 @@ const admin = require('firebase-admin');
 admin.initializeApp(functions.config().firebase);
  
 
-exports.sendGroupCreatedNotification = functions.database.ref('/group/{groupId}').onWrite(event =>{
+exports.sendGroupCreatedNotification = functions.database.ref('/group/{groupId}').onCreate(event =>{
 	 const snapshot = event.data;
 	 const root = event.data.ref.root;
 	 var groupID = event.params.groupId;
@@ -25,7 +25,7 @@ exports.sendGroupCreatedNotification = functions.database.ref('/group/{groupId}'
 	 var members = snapshot.val().members; 
 
 	 Object.keys(members).forEach(function(key){
-	 		console.log('Keys-',key);
+	 		//console.log('Keys-',key);
 	 		var memberId=key; 
 	 		var mPromise = root.child(`/users/${memberId}`).once('value');
 	 		memberPromises.push(mPromise);
@@ -36,14 +36,13 @@ exports.sendGroupCreatedNotification = functions.database.ref('/group/{groupId}'
 	  		 /*console.log('Results Length> ',results.length);
 	  		 console.log('Item1>',results[0].val().deviceIds);*/
 
-
 	  		 var tokens = results.map(result=>{
 
 				var dId=result.val().deviceIds;
-				console.log('Did',dId);
+				//console.log('Did',dId);
 
 				Object.keys(dId).forEach(function(key){ 
-					console.log("DId value",dId[key]);
+					//console.log("DId value",dId[key]);
 					tokensFCM.push(dId[key]);
 					 
 	  		 	});
@@ -52,14 +51,96 @@ exports.sendGroupCreatedNotification = functions.database.ref('/group/{groupId}'
 	  		 return tokensFCM;
 	  });
 
-	  newP.then(tokens =>{
-	  		console.log('Tokens',tokensFCM);
+	  return newP.then(tokens =>{
+	  		//console.log('Tokens',tokensFCM);
 	  		sendGroupInitSilentNotification(tokensFCM, groupID);
 	  });
 
 });
 
 
+exports.sendChatNotifications = functions.database.ref('/group/{groupId}/lastMessage').onWrite(event =>{
+	 const snapshot = event.data;
+ 	 const root = event.data.ref.root;
+	 var groupID = event.params.groupId;
+	 var senderID = snapshot.val().sender_id;
+	 var message = snapshot.val().message;
+
+	 var senderPromise = root.child(`/users/${senderID}`).once('value');
+	 var groupPromise = root.child(`/group/${groupID}`).once('value');
+
+	 return newPromise = Promise.all([senderPromise,groupPromise]).then( results =>{
+	 	var senderData=results[0].val();
+	 	var groupData = results[1].val();
+	 	console.log('Sender Data > ',senderData);
+	 	console.log('Group Data > ',groupData);
+	 	console.log('Message > ',message);
+	 	sendChatFCMnotification(senderData,groupData,message);
+	 });
+});
+
+
+function sendChatFCMnotification(sender,group,message){
+	if(group.group){
+		//Group chat
+		console.log('Notification Type >','Group Chat');
+		const payload = {
+		  data:{
+		  	title: group.name,
+		  	image: group.image_url,
+		  	type: 'group_chat',
+		  	group_id: group.groupId,
+		  	body : message,
+		  	sender: sender.uid,
+		  	sender_name : sender.name,
+		  	sender_image : sender.image_url
+		  }
+		};
+		var topic =group.groupId;
+		console.log('Topic Name >',topic);
+
+		admin.messaging().sendToTopic(topic, payload)
+			  .then(function(response) { 
+			    console.log("Successfully sent message to group : "+ group.name , response);
+			  })
+			  .catch(function(error) {
+			    console.log("Error sending message to group : "+ group.name, error);
+			  });
+
+
+	}else{
+		//One On One Chat
+		console.log('Notification Type >','One on One Chat'); 
+		const payload = {
+		  data:{
+		  	title: group.name,
+		  	image: group.image_url,
+		  	type: 'one_on_one_chat',
+		  	group_id: group.groupId,
+		  	body : message,
+		  	sender: sender.uid,
+		  	sender_name : sender.name,
+		  	sender_image : sender.image_url
+		  }
+		};
+		var topic =group.groupId;
+		console.log('Topic Name >',topic);
+
+		admin.messaging().sendToTopic(topic, payload)
+			  .then(function(response) { 
+			    console.log("Successfully sent message to OneOnOneChat : "+ group.groupId , response);
+			  })
+			  .catch(function(error) {
+			    console.log("Error sending message to OneOnOneChat : "+ group.groupId, error);
+			  });
+	}
+}
+
+/**
+* This function sends notification to all users in the group and app will make them subscribe
+* to the group ID. This method will be triggered only when new group is created.
+* 
+*/
 function sendGroupInitSilentNotification(tokens, groupid){
 	console.log('groupid >',groupid);
 	console.log('tokens >', tokens);
@@ -84,7 +165,8 @@ function sendGroupInitSilentNotification(tokens, groupid){
             // Cleanup the tokens who are not registered anymore.
             if (error.code === 'messaging/invalid-registration-token' ||
                 error.code === 'messaging/registration-token-not-registered') {
-              tokensToRemove.push(allTokens.ref.child(tokens[index]).remove());
+            	//TODO: Need to work on this
+              //tokensToRemove.push(allTokens.ref.child(tokens[index]).remove());
             }
           }else{
           	/*console.log('FCM','Group Creation notification sent successfully');
@@ -93,8 +175,11 @@ function sendGroupInitSilentNotification(tokens, groupid){
           return Promise.all(tokensToRemove);
         });
 	});
-
 }
+
+
+
+
 
 // Sends a notifications to all users when a new message is posted.
 /*exports.sendGroupCreationNotification = functions.database.ref('/groups/{groupId}').onCreate(event => {

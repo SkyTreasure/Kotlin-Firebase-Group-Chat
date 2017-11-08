@@ -24,6 +24,7 @@ import java.util.*
 import com.google.firebase.database.Transaction
 import android.databinding.adapters.NumberPickerBindingAdapter.setValue
 import android.provider.Settings
+import com.google.firebase.messaging.FirebaseMessaging
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants
 import io.skytreasure.kotlingroupchat.common.constants.NetworkConstants
 import io.skytreasure.kotlingroupchat.common.util.MyTextUtil
@@ -358,6 +359,8 @@ ref.updateChildren(updatedUserData, new Firebase.CompletionListener() {
                     groupMembersMap?.put(groupModel.groupId!!, memberList)
                     groupMessageMap?.put(groupModel.groupId!!, arrayListOf())
                     sGroupMap?.put(groupModel.groupId!!, groupModel)
+
+                    FirebaseMessaging.getInstance().subscribeToTopic(groupModel.groupId!!);
                 }
                 i--
                 if (i <= 0) {
@@ -395,6 +398,8 @@ ref.updateChildren(updatedUserData, new Firebase.CompletionListener() {
         messageModel?.message_id = messageKey
 
         mMessageRef?.child(groupId)?.child(messageKey)?.setValue(messageModel)
+
+        mGroupRef?.child(groupId)?.child(FirebaseConstants.LAST_MESSAGE)?.setValue(messageModel)
 
         callback?.handleData(true, requestType)
         //TODO: Send Notification here.

@@ -24,7 +24,13 @@ public class FirebaseConstants {
     public static final String TYPE="type";
     public static final String CHAT="chat";
     public static final String FOLLOW_GROUP="follow_group";
+    public static final String GROUP_CHAT ="group_chat";
+    public static final String ONE_ON_ONE_CHAT="one_on_one_chat";
     public static final String GROUP_ID="group_id";
     public static final String TITLE="title";
     public static final String BODY="body";
+    public static final String SENDER="sender";
+    public static final String SENDER_NAME="sender_name";
+    public static final String SENDER_IMAGE="sender_image";
+    public static final String IMAGE="image";
 }
