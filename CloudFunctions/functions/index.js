@@ -12,30 +12,143 @@ const functions = require('firebase-functions');
 // The Firebase Admin SDK to access the Firebase Realtime Database. 
 const admin = require('firebase-admin');
 admin.initializeApp(functions.config().firebase);
+ 
+
+exports.sendGroupCreatedNotification = functions.database.ref('/group/{groupId}').onWrite(event =>{
+	 const snapshot = event.data;
+	 const root = event.data.ref.root;
+	 var groupID = event.params.groupId;
+
+	 var memberPromises = [];
+	 var tokensFCM=[];
+
+	 var members = snapshot.val().members; 
+
+	 Object.keys(members).forEach(function(key){
+	 		console.log('Keys-',key);
+	 		var memberId=key; 
+	 		var mPromise = root.child(`/users/${memberId}`).once('value');
+	 		memberPromises.push(mPromise);
+	 });
+	 
+
+	  var newP = Promise.all(memberPromises).then( results => {
+	  		 /*console.log('Results Length> ',results.length);
+	  		 console.log('Item1>',results[0].val().deviceIds);*/
 
 
-// Take the text parameter passed to this HTTP endpoint and insert it into the
-// Realtime Database under the path /messages/:pushId/original
-exports.addMessage = functions.https.onRequest((req, res) => {
-  // Grab the text parameter.
-  const original = req.query.text;
-  // Push the new message into the Realtime Database using the Firebase Admin SDK.
-  admin.database().ref('/tmessages').push({original: original}).then(snapshot => {
-    // Redirect with 303 SEE OTHER to the URL of the pushed object in the Firebase console.
-    res.redirect(303, snapshot.ref);
-  });
+	  		 var tokens = results.map(result=>{
+
+				var dId=result.val().deviceIds;
+				console.log('Did',dId);
+
+				Object.keys(dId).forEach(function(key){ 
+					console.log("DId value",dId[key]);
+					tokensFCM.push(dId[key]);
+					 
+	  		 	});
+	  		 });
+ 
+	  		 return tokensFCM;
+	  });
+
+	  newP.then(tokens =>{
+	  		console.log('Tokens',tokensFCM);
+	  		sendGroupInitSilentNotification(tokensFCM, groupID);
+	  });
+
 });
 
-// Listens for new messages added to /messages/:pushId/original and creates an
-// uppercase version of the message to /messages/:pushId/uppercase
-exports.makeUppercase = functions.database.ref('/tmessages/{pushId}/original')
-    .onWrite(event => {
-      // Grab the current value of what was written to the Realtime Database.
-      const original = event.data.val();
-      console.log('Uppercasing', event.params.pushId, original);
-      const uppercase = original.toUpperCase();
-      // You must return a Promise when performing asynchronous tasks inside a Functions such as
-      // writing to the Firebase Realtime Database.
-      // Setting an "uppercase" sibling in the Realtime Database returns a Promise.
-      return event.data.ref.parent.child('uppercase').set(uppercase);
-    });
+
+function sendGroupInitSilentNotification(tokens, groupid){
+	console.log('groupid >',groupid);
+	console.log('tokens >', tokens);
+
+	const payload = {
+	  data:{
+	  	title: 'New Group has been created',
+	  	type: 'follow_group',
+	  	group_id: groupid,
+	  	body : 'Tap to check'
+	  }
+	};
+
+	admin.messaging().sendToDevice(tokens, payload).then(response => {
+        // For each message check if there was an error.
+        const tokensToRemove = [];
+        console.log('FCM',response);
+        response.results.forEach((result, index) => {
+          const error = result.error;
+          if (error) {
+            console.error('Failure sending notification to', tokens[index], error);
+            // Cleanup the tokens who are not registered anymore.
+            if (error.code === 'messaging/invalid-registration-token' ||
+                error.code === 'messaging/registration-token-not-registered') {
+              tokensToRemove.push(allTokens.ref.child(tokens[index]).remove());
+            }
+          }else{
+          	/*console.log('FCM','Group Creation notification sent successfully');
+          	console.log('FCM',result);*/
+          }
+          return Promise.all(tokensToRemove);
+        });
+	});
+
+}
+
+// Sends a notifications to all users when a new message is posted.
+/*exports.sendGroupCreationNotification = functions.database.ref('/groups/{groupId}').onCreate(event => {
+  const snapshot = event.data;
+
+
+   
+
+   for (var entry of snapshot.val().members.entries()) {
+    	var memberId = entry[0],
+        var member = entry[1];
+    	
+    	
+    	return admin.database().ref('/users/'+memberId).once('value').then( member =>{
+    		if(member.val()){
+    			return member.val().name
+    		}
+    	});
+	}	
+
+  // Notification details.
+  const text = snapshot.val().text;
+  const payload = {
+    notification: {
+      title: `${snapshot.val().name} posted ${text ? 'a message' : 'an image'}`,
+      body: text ? (text.length <= 100 ? text : text.substring(0, 97) + '...') : '',
+      icon: snapshot.val().photoUrl || '/images/profile_placeholder.png',
+      click_action: `https://${functions.config().firebase.authDomain}`
+    }
+  };
+
+  // Get the list of device tokens.
+  return admin.database().ref('fcmTokens').once('value').then(allTokens => {
+    if (allTokens.val()) {
+      // Listing all tokens.
+      const tokens = Object.keys(allTokens.val());
+
+      // Send notifications to all tokens.
+      return admin.messaging().sendToDevice(tokens, payload).then(response => {
+        // For each message check if there was an error.
+        const tokensToRemove = [];
+        response.results.forEach((result, index) => {
+          const error = result.error;
+          if (error) {
+            console.error('Failure sending notification to', tokens[index], error);
+            // Cleanup the tokens who are not registered anymore.
+            if (error.code === 'messaging/invalid-registration-token' ||
+                error.code === 'messaging/registration-token-not-registered') {
+              tokensToRemove.push(allTokens.ref.child(tokens[index]).remove());
+            }
+          }
+        });
+        return Promise.all(tokensToRemove);
+      });
+    }
+  });
+});    */

@@ -21,6 +21,10 @@ public class FirebaseConstants {
     public static final String ADMIN = "admin";
     public static final String DELETE_TILL_TIMESTAMP = "delete_till";
 
-    public static final String NOTIFICATION_TYPE="action";
+    public static final String TYPE="type";
     public static final String CHAT="chat";
+    public static final String FOLLOW_GROUP="follow_group";
+    public static final String GROUP_ID="group_id";
+    public static final String TITLE="title";
+    public static final String BODY="body";
 }

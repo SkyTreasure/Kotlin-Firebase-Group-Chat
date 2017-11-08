@@ -36,10 +36,10 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
     private fun sendNotification(remoteMessage: RemoteMessage) {
         val dataBody = remoteMessage.data
-        val notificationBody = remoteMessage.notification
+      //  val notificationBody = remoteMessage.notification
 
         val notificationManager = MyNotificationManager.getInstance(this)
-        notificationManager.sendNotification(dataBody, notificationBody)
+        notificationManager.sendNotification(dataBody)
     }
 
 }
