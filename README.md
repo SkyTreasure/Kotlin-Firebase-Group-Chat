@@ -1,5 +1,5 @@
-# Kotlin-Firebase-Group-Chat (Unstable, crashes at some places)
-Group chat using firebase built in Kotlin
+# Kotlin-Firebase-Group-Chat 
+Group chat using firebase built in Kotlin. (Unstable, crashes at some places)
 
 ## Features-
 1. Groupchat 
