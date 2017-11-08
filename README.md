@@ -1,4 +1,4 @@
-# Kotlin-Firebase-Group-Chat
+# Kotlin-Firebase-Group-Chat (Unstable, crashes at some places)
 Group chat using firebase built in Kotlin
 
 ## Features-
@@ -13,12 +13,15 @@ Group chat using firebase built in Kotlin
 9. Admin adding members to the group
 10. Admin removing members from the group
 11. User Online/Offline presence status. 
+12. Firebase Cloud functions 
+13. FCM Notification using cloud functions added for group chat.
 
 
 ## Pending Features-
 1. Notifications
 2. Improve code
 3. Make the app smooth. (Avoid ANR's)
+4. Bug Fixes
 
 ## ScreenShots
 
