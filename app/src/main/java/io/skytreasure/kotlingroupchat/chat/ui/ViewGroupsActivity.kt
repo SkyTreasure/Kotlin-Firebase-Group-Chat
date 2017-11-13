@@ -11,12 +11,14 @@ import kotlinx.android.synthetic.main.activity_view_groups.*
 
 import io.skytreasure.kotlingroupchat.R
 import io.skytreasure.kotlingroupchat.chat.MyChatManager
+import io.skytreasure.kotlingroupchat.chat.model.GroupModel
 import io.skytreasure.kotlingroupchat.chat.ui.adapter.ViewGroupsAdapter
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.sCurrentUser
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.sGroupMap
 import io.skytreasure.kotlingroupchat.common.constants.DataConstants.Companion.sMyGroups
 import io.skytreasure.kotlingroupchat.common.constants.NetworkConstants
 import io.skytreasure.kotlingroupchat.common.controller.NotifyMeInterface
+import java.util.*
 
 class ViewGroupsActivity : AppCompatActivity(), View.OnClickListener {
     override fun onClick(v: View?) {
@@ -70,6 +72,23 @@ class ViewGroupsActivity : AppCompatActivity(), View.OnClickListener {
                     }
 
                 }
+                //sort DataConstants.sMyGroups
+                Collections.sort<GroupModel>(sMyGroups) { o1, o2 ->
+                    if(o1.lastMessage?.timestamp.equals("") && o2.lastMessage?.timestamp.equals("")){
+                        0
+                    }
+                    else if(o1.lastMessage?.timestamp.equals("")){
+                        (o2.lastMessage?.timestamp?.toDouble()!!).toInt()
+                    }else if(o2.lastMessage?.timestamp.equals("")){
+                        (o1.lastMessage?.timestamp?.toDouble()!!).toInt()
+                    }else{
+                         (o2.lastMessage?.timestamp?.toDouble()!! - o1.lastMessage?.timestamp?.toDouble()!!).toInt()
+                    }
+
+                }
+
+
+
                 rv_main.layoutManager = LinearLayoutManager(this@ViewGroupsActivity) as RecyclerView.LayoutManager?
                 adapter = ViewGroupsAdapter(this@ViewGroupsActivity)
                 rv_main.adapter = adapter
@@ -78,4 +97,6 @@ class ViewGroupsActivity : AppCompatActivity(), View.OnClickListener {
 
         }, NetworkConstants.FETCH_GROUPS, sCurrentUser, isSingleEvent = false)
     }
+
+
 }

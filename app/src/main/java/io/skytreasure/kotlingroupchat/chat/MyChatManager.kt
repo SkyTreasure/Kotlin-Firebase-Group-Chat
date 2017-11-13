@@ -180,6 +180,7 @@ ref.updateChildren(updatedUserData, new Firebase.CompletionListener() {
         var deviceId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
         var deviceIdMap: java.util.HashMap<String, String> = hashMapOf()
         deviceIdMap.put(deviceId, token)
+
         mUserRef?.child(sCurrentUser?.uid)?.child("deviceIds")?.setValue(deviceIdMap)
     }
 
@@ -370,7 +371,8 @@ ref.updateChildren(updatedUserData, new Firebase.CompletionListener() {
         }
 
 
-        for (group in userModel?.group!!) {
+
+        for (group in userModel.group) {
             if (group.value) {
                 if (isSingleEvent) {
                     mGroupRef?.child(group.key)?.addListenerForSingleValueEvent(groupListener)
