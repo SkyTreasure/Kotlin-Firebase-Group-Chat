@@ -354,14 +354,17 @@ ref.updateChildren(updatedUserData, new Firebase.CompletionListener() {
                 if (groupSnapshot.exists()) {
                     var groupModel: GroupModel = groupSnapshot.getValue<GroupModel>(GroupModel::class.java)!!
                     var memberList: ArrayList<UserModel> = arrayListOf()
-                    for (member in groupModel.members) {
-                        memberList.add(member.value)
-                    }
-                    groupMembersMap?.put(groupModel.groupId!!, memberList)
-                    groupMessageMap?.put(groupModel.groupId!!, arrayListOf())
-                    sGroupMap?.put(groupModel.groupId!!, groupModel)
+                    if(!groupModel.group_deleted!!){
+                        for (member in groupModel.members) {
+                            memberList.add(member.value)
+                        }
+                        groupMembersMap?.put(groupModel.groupId!!, memberList)
+                        groupMessageMap?.put(groupModel.groupId!!, arrayListOf())
+                        sGroupMap?.put(groupModel.groupId!!, groupModel)
 
-                    FirebaseMessaging.getInstance().subscribeToTopic(groupModel.groupId!!);
+                        FirebaseMessaging.getInstance().subscribeToTopic(groupModel.groupId!!);
+                    }
+
                 }
                 i--
                 if (i <= 0) {
@@ -373,6 +376,7 @@ ref.updateChildren(updatedUserData, new Firebase.CompletionListener() {
 
 
         for (group in userModel.group) {
+
             if (group.value) {
                 if (isSingleEvent) {
                     mGroupRef?.child(group.key)?.addListenerForSingleValueEvent(groupListener)

@@ -33,4 +33,5 @@ public class FirebaseConstants {
     public static final String SENDER_NAME="sender_name";
     public static final String SENDER_IMAGE="sender_image";
     public static final String IMAGE="image";
+    public static final String GROUP_DELETED="group_deleted";
 }
